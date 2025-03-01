@@ -29,7 +29,7 @@ export default function Navbar() {
 			>
 				<li>
 					{currentPage === "/" ? (
-						<Link href="/">Game Modes</Link>
+						<Link href="/gamemodes">Game Modes</Link>
 					) : (
 						<Link href="/">Menu</Link>
 					)}
