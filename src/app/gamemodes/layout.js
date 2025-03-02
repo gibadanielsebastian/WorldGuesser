@@ -2,13 +2,13 @@ import "../globals.css";
 import "../components/navbar.js";
 import Navbar from "../components/navbar.js";
 
-export default function RootLayout({ children }) {
+export default function GameModesLayout({ children }) {
 	return (
-		<html lang="en">
-			<body className="pt-16">
+		<>
+			<div className="pt-16">
 				<Navbar />
 				{children}
-			</body>
-		</html>
+			</div>
+		</>
 	);
 }
