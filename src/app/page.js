@@ -9,7 +9,7 @@ const itim = Itim({
 
 export default function Home() {
 	return (
-		<div className="flex justify-center items-center min-h-[calc(100vh-8rem)]">
+		<div className="flex justify-center items-center min-h-[calc(100vh-10rem)] ">
 			<div className="flex flex-col items-center gap-8">
 				<Image src="/logo.webp" width="256" height="256" alt="logo" priority />
 

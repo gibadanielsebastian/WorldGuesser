@@ -7,7 +7,7 @@ const itim = Itim({
 
 export default function GameModes() {
 	return (
-		<div className="flex md:h-[calc(100vh-8rem)] justify-center items-center overflow-hidden">
+		<div className="flex md:h-[calc(100vh-10rem)] justify-center items-center overflow-hidden">
 			<div className="flex flex-col mt-32 mb-16 md:mt-0 md:mb-0 md:flex-row md:w-3/4 gap-16 place-items-center">
 				{["Guess the Flag", "Name the County", "Find the Country"].map(
 					(text) => {
