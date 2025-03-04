@@ -27,16 +27,32 @@ const NavLinks = ({ setIsMenuOpen, isMenuOpen }) => {
 				<button
 					type="button"
 					onClick={() => {
-						setIsMenuOpen(!isMenuOpen);
+						setIsMenuOpen && setIsMenuOpen(!isMenuOpen);
 						router.push("/gamemodes");
 					}}
 				>
 					Game Modes
 				</button>
 			) : (
-				<Link href="/">Menu</Link>
+				<button
+					type="button"
+					onClick={() => {
+						setIsMenuOpen && setIsMenuOpen(!isMenuOpen);
+						router.push("/");
+					}}
+				>
+					Home
+				</button>
 			)}
-			<Link href="/">Records</Link>
+			<button
+				type="button"
+				onClick={() => {
+					setIsMenuOpen && setIsMenuOpen(!isMenuOpen);
+					router.push("/");
+				}}
+			>
+				Records
+			</button>
 		</>
 	);
 };
@@ -45,9 +61,9 @@ export default function Navbar() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 
 	return (
-		<nav className=" fixed top-0 left-0 w-full h-16 flex flex-wrap justify-between items-center p-4 ">
+		<nav className="top-0 h-16 flex flex-wrap justify-between items-center p-4">
 			<Link href="/">
-				<h1 className={`font-extrabold ${kablammo.className} ml-8 text-4xl`}>
+				<h1 className={`font-extrabold ${kablammo.className} ml-8 text-3xl`}>
 					World Guesser
 				</h1>
 			</Link>
