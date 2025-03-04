@@ -6,6 +6,7 @@ import "/src/app/globals.css";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Kablammo, Itim } from "next/font/google";
+import { useRouter } from "next/navigation";
 
 const kablammo = Kablammo({
 	subsets: ["latin"],
@@ -17,12 +18,21 @@ const itim = Itim({
 	weight: "400",
 });
 
-const NavLinks = () => {
+const NavLinks = ({ setIsMenuOpen, isMenuOpen }) => {
 	const currentPage = usePathname();
+	const router = useRouter();
 	return (
 		<>
 			{currentPage === "/" ? (
-				<Link href="/gamemodes">Game Modes</Link>
+				<button
+					type="button"
+					onClick={() => {
+						setIsMenuOpen(!isMenuOpen);
+						router.push("/gamemodes");
+					}}
+				>
+					Game Modes
+				</button>
 			) : (
 				<Link href="/">Menu</Link>
 			)}
@@ -54,9 +64,9 @@ export default function Navbar() {
 			</ul>
 			{isMenuOpen && (
 				<div
-					className={`flex flex-col items-center basis-full gap-4 ${itim.className} text-2xl mt-4`}
+					className={`flex flex-col items-center basis-full gap-4 ${itim.className} text-2xl mt-4 `}
 				>
-					<NavLinks onClick={() => setIsMenuOpen(false)} />
+					<NavLinks setIsMenuOpen={setIsMenuOpen} isMenuOpen={isMenuOpen} />
 				</div>
 			)}
 		</nav>
