@@ -1,4 +1,5 @@
 import { Itim } from "next/font/google";
+import Link from "next/link";
 
 const itim = Itim({
 	subsets: ["latin"],
@@ -20,14 +21,21 @@ export default function GameModes() {
 								"The name of a country will be shown and you have to find it on the map. Try to be as fast as possible to get the highest score!",
 						}[text];
 
+						const links = {
+							"Guess the Flag": "/gamemodes/guess-the-flag",
+							"Name the County": "/gamemodes/name-the-country",
+							"Find the Country": "/gamemodes/find-the-country",
+						}[text];
+
 						return (
 							<div key={text} className="flex flex-col w-3/4 gap-4">
 								<div className="border-2 rounded-lg p-4">{content}</div>
-								<button
-									className={`p-4 bg-[var(--main)] text-xl ${itim.className}`}
+								<Link
+									href={links}
+									className={`p-4 bg-[var(--main)] text-xl ${itim.className} text-center`}
 								>
 									{text}
-								</button>
+								</Link>
 							</div>
 						);
 					}
