@@ -1,6 +1,5 @@
 "use client";
 
-import { countries } from "country-flag-icons";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useMemo, useCallback } from "react";
