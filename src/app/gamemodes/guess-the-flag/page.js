@@ -403,7 +403,7 @@ export default function GuessTheFlag() {
 			uruguay: "UY",
 			uzbekistan: "UZ",
 			vanuatu: "VU",
-			"vatican city": "VA",
+			vatican: "VA",
 			venezuela: "VE",
 			vietnam: "VN",
 			yemen: "YE",
@@ -474,16 +474,23 @@ export default function GuessTheFlag() {
 
 	const handleChange = (e) => {
 		const value = e.target.value;
-		setInputValue(value.toLowerCase());
+		const lowerValue = value.toLowerCase();
+		setInputValue(lowerValue);
 
 		// Check if the input value matches the flag
-		if (countriesArr[value.toLowerCase()] === randomCountry) {
+		if (
+			countriesArr[lowerValue] === randomCountry ||
+			(randomCountry === "NG" && lowerValue === "nigeria")
+		) {
 			setIsCorrect(isCorrect + 1);
 			setTimeLeft(timeLeft + 5);
 			setInputValue("");
 			guessedCountries.push(randomCountry);
 			setRandomCountry(getRandomCountry());
-		} else if (countriesArr[value]) {
+		} else if (
+			countriesArr[lowerValue] &&
+			!(randomCountry === "NG" && lowerValue.startsWith("niger"))
+		) {
 			setIsWrong(isWrong + 1);
 			setInputValue("");
 			setRandomCountry(getRandomCountry());
