@@ -471,29 +471,62 @@ export default function GuessTheFlag() {
 		return name.toLowerCase();
 	}, []);
 
+	// Get the correct country name for the current flag
+	const getCorrectCountryName = useCallback(() => {
+		return Object.entries(countriesArr).find(
+			([_, code]) => code === randomCountry
+		)?.[0];
+	}, [countriesArr, randomCountry]);
+
+	// Function to check if input is a potential match for a longer country name
+	const isPotentialMatchForLongerCountry = useCallback(
+		(input) => {
+			// Special case for Niger/Nigeria
+			if (
+				randomCountry === "NG" && // Nigeria's flag is shown
+				input === "niger" // User has typed "niger"
+			) {
+				return true; // "niger" could be part of "nigeria"
+			}
+
+			// Check if input is a prefix of the correct country
+			const correctCountry = getCorrectCountryName();
+			if (correctCountry && correctCountry.startsWith(input)) {
+				return true;
+			}
+
+			return false;
+		},
+		[randomCountry, getCorrectCountryName]
+	);
+
 	const handleChange = (e) => {
 		const value = e.target.value;
 		const lowerValue = normalizeCountryName(value);
 		setInputValue(lowerValue);
 
-		// Check if the input value matches the flag
-		const correctAnswer = Object.entries(countriesArr).find(
-			([_, code]) => code === randomCountry
-		)?.[0];
+		// Get the correct country name
+		const correctCountry = getCorrectCountryName();
 
-		if (correctAnswer && normalizeCountryName(correctAnswer) === lowerValue) {
+		// CASE 1: Correct answer
+		if (correctCountry && normalizeCountryName(correctCountry) === lowerValue) {
 			setIsCorrect((prev) => prev + 1);
 			setTimeLeft((prev) => prev + 5);
 			setInputValue("");
 			setGuessedCountries((prev) => [...prev, randomCountry]);
 			setRandomCountry(getRandomCountry());
-		} else if (
-			countriesArr[lowerValue] &&
-			countriesArr[lowerValue] !== randomCountry
-		) {
-			setIsWrong((prev) => prev + 1);
-			setInputValue("");
-			setRandomCountry(getRandomCountry());
+			return;
+		}
+
+		// CASE 2: Wrong answer, but need to check special cases
+		if (countriesArr[lowerValue]) {
+			// First check if it's a potential match for a longer country
+			// (like "niger" could be part of "nigeria")
+			if (!isPotentialMatchForLongerCountry(lowerValue)) {
+				setIsWrong((prev) => prev + 1);
+				setInputValue("");
+				setRandomCountry(getRandomCountry());
+			}
 		}
 	};
 
