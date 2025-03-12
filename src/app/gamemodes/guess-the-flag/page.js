@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Itim } from "next/font/google";
+import { useSettings } from "../../contexts/SettingsContext";
 
 const itim = Itim({
 	subsets: ["latin"],
@@ -11,6 +12,30 @@ const itim = Itim({
 });
 
 export default function GuessTheFlag() {
+	const { difficulty, soundEnabled } = useSettings();
+
+	// Base time for different difficulty levels
+	const difficultySettings = useMemo(
+		() => ({
+			easy: {
+				timeLimit: 150,
+				bonusTime: 7,
+				countryCount: 100, // Use fewer countries for easy mode
+			},
+			medium: {
+				timeLimit: 120,
+				bonusTime: 5,
+				countryCount: 150, // Use most countries for medium mode
+			},
+			hard: {
+				timeLimit: 90,
+				bonusTime: 3,
+				countryCount: 195, // Use all countries for hard mode
+			},
+		}),
+		[]
+	);
+
 	const countriesCodesArr = useMemo(
 		() => [
 			"AF",
@@ -54,6 +79,7 @@ export default function GuessTheFlag() {
 			"CD",
 			"CG",
 			"CR",
+			"CI",
 			"HR",
 			"CU",
 			"CY",
@@ -62,7 +88,6 @@ export default function GuessTheFlag() {
 			"DJ",
 			"DM",
 			"DO",
-			"TL",
 			"EC",
 			"EG",
 			"SV",
@@ -96,7 +121,6 @@ export default function GuessTheFlag() {
 			"IE",
 			"IL",
 			"IT",
-			"CI",
 			"JM",
 			"JP",
 			"JO",
@@ -208,9 +232,135 @@ export default function GuessTheFlag() {
 			"YE",
 			"ZM",
 			"ZW",
+			"PR",
 		],
 		[]
 	);
+
+	// Filter countries based on difficulty
+	const activeCountries = useMemo(() => {
+		const settings = difficultySettings[difficulty];
+
+		// Easy mode - most common/recognizable countries
+		const easyCountries = [
+			"US",
+			"GB",
+			"FR",
+			"DE",
+			"IT",
+			"ES",
+			"RU",
+			"CN",
+			"JP",
+			"AU",
+			"CA",
+			"BR",
+			"IN",
+			"MX",
+			"ZA",
+			"AR",
+			"SE",
+			"NO",
+			"FI",
+			"DK",
+			"PT",
+			"GR",
+			"TR",
+			"EG",
+			"MA",
+			"KE",
+			"NG",
+			"TH",
+			"MY",
+			"SG",
+			"ID",
+			"PH",
+			"NZ",
+			"CL",
+			"PE",
+			"CO",
+			"VE",
+			"CH",
+			"AT",
+			"BE",
+			"NL",
+			"IE",
+			"PL",
+			"UA",
+			"CZ",
+			"HU",
+			"RO",
+			"BG",
+			"RS",
+			"HR",
+			"SI",
+			"SK",
+			"LT",
+			"LV",
+			"EE",
+			"BY",
+			"KZ",
+			"IL",
+			"SA",
+			"AE",
+			"QA",
+			"KW",
+			"IQ",
+			"IR",
+			"PK",
+			"BD",
+			"LK",
+			"MM",
+			"VN",
+			"TW",
+			"KR",
+			"KP",
+			"MN",
+			"CU",
+			"JM",
+			"DO",
+			"PR",
+			"PA",
+			"CR",
+			"NI",
+			"HN",
+			"SV",
+			"GT",
+			"BZ",
+			"BS",
+			"IS",
+			"GL",
+			"GR",
+			"CY",
+			"MT",
+			"LU",
+			"LI",
+			"MC",
+			"SM",
+			"VA",
+			"AD",
+			"MU",
+			"SC",
+			"MV",
+			"SY",
+			"JO",
+			"LB",
+			"UY",
+			"PY",
+			"BO",
+		];
+
+		if (difficulty === "easy") {
+			return countriesCodesArr
+				.filter((code) => easyCountries.includes(code))
+				.slice(0, settings.countryCount);
+		} else if (difficulty === "medium") {
+			return countriesCodesArr.slice(0, settings.countryCount);
+		} else {
+			// Hard - use all countries
+			return countriesCodesArr;
+		}
+	}, [countriesCodesArr, difficulty, difficultySettings]);
 
 	// Hints for countries
 	const countryHints = useMemo(
@@ -412,6 +562,48 @@ export default function GuessTheFlag() {
 			ZW: "Landlocked country in Southern Africa with Victoria Falls",
 		}),
 		[]
+	);
+
+	// For easier difficulty, provide more specific hints
+	const getHintForDifficulty = useCallback(
+		(countryCode) => {
+			const baseHint = countryHints[countryCode] || "No hint available";
+
+			// For easy mode, add more specific clues
+			if (difficulty === "easy") {
+				const easyHints = {
+					US: baseHint + " Its flag has stars and stripes.",
+					GB: baseHint + " Its flag is known as the Union Jack.",
+					FR: baseHint + " Its flag has vertical blue, white, and red stripes.",
+					DE:
+						baseHint +
+						" Its flag has horizontal black, red, and yellow stripes.",
+					IT:
+						baseHint + " Its flag has vertical green, white, and red stripes.",
+					JP:
+						baseHint + " Its flag features a red circle on a white background.",
+					CA: baseHint + " Its flag features a red maple leaf.",
+					CH: baseHint + " Its flag is a white cross on a red background.",
+					BR:
+						baseHint +
+						" Its flag has a yellow diamond on a green background with a blue circle.",
+					AU:
+						baseHint +
+						" Its flag features the Union Jack and stars of the Southern Cross.",
+					// Add more easy hints as needed
+				};
+
+				return easyHints[countryCode] || baseHint;
+			}
+
+			// For hard mode, provide more vague hints
+			if (difficulty === "hard") {
+				return baseHint.split(",")[0] + "."; // Just the first part of the hint
+			}
+
+			return baseHint;
+		},
+		[countryHints, difficulty]
 	);
 
 	const countriesArr = useMemo(
@@ -635,7 +827,7 @@ export default function GuessTheFlag() {
 
 	const [inputValue, setInputValue] = useState("");
 	const [randomCountry, setRandomCountry] = useState(
-		countriesCodesArr[Math.floor(Math.random() * countriesCodesArr.length)]
+		activeCountries[Math.floor(Math.random() * activeCountries.length)]
 	);
 	const [guessedCountries, setGuessedCountries] = useState([]);
 
@@ -643,14 +835,34 @@ export default function GuessTheFlag() {
 		let newCountry;
 		do {
 			newCountry =
-				countriesCodesArr[Math.floor(Math.random() * countriesCodesArr.length)];
+				activeCountries[Math.floor(Math.random() * activeCountries.length)];
 		} while (guessedCountries.includes(newCountry));
 		return newCountry;
-	}, [countriesCodesArr, guessedCountries]);
+	}, [activeCountries, guessedCountries]);
 
 	const [isCorrect, setIsCorrect] = useState(0);
 	const [isWrong, setIsWrong] = useState(0);
-	const [timeLeft, setTimeLeft] = useState(120);
+	const [timeLeft, setTimeLeft] = useState(
+		difficultySettings[difficulty].timeLimit
+	);
+
+	// Play sound effect when enabled
+	const playSound = useCallback(
+		(type) => {
+			if (!soundEnabled) return;
+
+			// Create audio elements for sounds
+			const correctSound = new Audio("/sounds/correct.mp3");
+			const wrongSound = new Audio("/sounds/wrong.mp3");
+
+			if (type === "correct") {
+				correctSound.play();
+			} else if (type === "wrong") {
+				wrongSound.play();
+			}
+		},
+		[soundEnabled]
+	);
 
 	useEffect(() => {
 		if (isOn && timeLeft > 0) {
@@ -665,8 +877,9 @@ export default function GuessTheFlag() {
 				id: Date.now(),
 				score: isCorrect,
 				date: new Date().toISOString().split("T")[0],
-				time: 120, // Original time limit
+				time: difficultySettings[difficulty].timeLimit, // Original time limit
 				gameMode: "Guess the Flag",
+				difficulty: difficulty,
 			};
 
 			// Get existing records
@@ -689,14 +902,14 @@ export default function GuessTheFlag() {
 			// Reset the game
 			setIsStarted(false);
 			setIsOn(false);
-			setTimeLeft(120);
+			setTimeLeft(difficultySettings[difficulty].timeLimit);
 			setIsCorrect(0);
 			setIsWrong(0);
 			setInputValue("");
 			setGuessedCountries([]);
 			setShowHint(false);
 		}
-	}, [isOn, timeLeft, isCorrect]);
+	}, [isOn, timeLeft, isCorrect, difficulty, difficultySettings]);
 
 	const normalizeCountryName = useCallback((name) => {
 		return name.toLowerCase();
@@ -742,8 +955,9 @@ export default function GuessTheFlag() {
 		// CASE 1: Correct answer
 		if (correctCountry && normalizeCountryName(correctCountry) === lowerValue) {
 			setIsCorrect((prev) => prev + 1);
-			setTimeLeft((prev) => prev + 5);
+			setTimeLeft((prev) => prev + difficultySettings[difficulty].bonusTime);
 			setInputValue("");
+			playSound("correct");
 			setGuessedCountries((prev) => [...prev, randomCountry]);
 			setRandomCountry(getRandomCountry());
 			setShowHint(false); // Reset hint for next country
@@ -756,6 +970,7 @@ export default function GuessTheFlag() {
 			// (like "niger" could be part of "nigeria")
 			if (!isPotentialMatchForLongerCountry(lowerValue)) {
 				setIsWrong((prev) => prev + 1);
+				playSound("wrong");
 				setInputValue("");
 				setRandomCountry(getRandomCountry());
 				setShowHint(false); // Reset hint for next country
@@ -766,6 +981,7 @@ export default function GuessTheFlag() {
 	// Handle skip button click
 	const handleSkip = () => {
 		setIsWrong((prev) => prev + 1);
+		playSound("wrong");
 		setInputValue("");
 		setGuessedCountries((prev) => [...prev, randomCountry]);
 		setRandomCountry(getRandomCountry());
@@ -782,6 +998,30 @@ export default function GuessTheFlag() {
 						belongs to by writing the name in the box. <br /> Try to be as fast
 						as possible to beat your highest score!
 					</p>
+					<div className="mb-6">
+						<p className="text-lg font-medium mb-2">
+							Current Difficulty:{" "}
+							<span className="text-[var(--main)]">
+								{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+							</span>
+						</p>
+						<p className="text-sm">
+							{difficulty === "easy"
+								? "Fewer countries, more time, and better hints"
+								: difficulty === "medium"
+								? "Standard difficulty with balanced time and countries"
+								: "All countries, less time, and minimal hints"}
+						</p>
+						<p className="text-sm mt-2">
+							Change difficulty in{" "}
+							<Link
+								href="/settings"
+								className="text-[var(--main)] hover:underline"
+							>
+								Settings
+							</Link>
+						</p>
+					</div>
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						<button
 							onClick={() => setIsStarted(true)}
@@ -833,7 +1073,7 @@ export default function GuessTheFlag() {
 
 							{showHint && (
 								<div className="text-lg italic mb-4 bg-[var(--foreground-muted)] bg-opacity-20 p-3 rounded-lg">
-									Hint: {countryHints[randomCountry]}
+									Hint: {getHintForDifficulty(randomCountry)}
 								</div>
 							)}
 

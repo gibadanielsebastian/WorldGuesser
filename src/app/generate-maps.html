@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Official 195 Countries SVG Generator</title>
+		<script src="https://d3js.org/d3.v7.min.js"></script>
+		<script src="https://d3js.org/topojson.v3.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+		<style>
+			body {
+				font-family: system-ui, sans-serif;
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 20px;
+				background-color: #f8f9fa;
+			}
+			button {
+				padding: 10px 15px;
+				background-color: #3498db;
+				color: white;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				margin-right: 10px;
+			}
+			button:hover {
+				background-color: #2980b9;
+			}
+			button:disabled {
+				background-color: #bdc3c7;
+				cursor: not-allowed;
+			}
+			.progress-bar {
+				height: 20px;
+				background-color: #ecf0f1;
+				border-radius: 10px;
+				overflow: hidden;
+				margin-top: 20px;
+			}
+			.progress-bar-fill {
+				height: 100%;
+				background-color: #3498db;
+				width: 0%;
+				transition: width 0.3s ease;
+			}
+			#preview {
+				border: 1px solid #ddd;
+				border-radius: 8px;
+				margin-top: 20px;
+				overflow: hidden;
+				background-color: #fff;
+			}
+			#log {
+				height: 200px;
+				overflow-y: auto;
+				border: 1px solid #ddd;
+				padding: 10px;
+				margin-top: 20px;
+				font-family: monospace;
+				font-size: 12px;
+			}
+			.log-entry {
+				margin: 3px 0;
+				padding: 3px 6px;
+				border-radius: 3px;
+			}
+			.success {
+				color: #27ae60;
+				background-color: rgba(39, 174, 96, 0.1);
+			}
+			.error {
+				color: #e74c3c;
+				background-color: rgba(231, 76, 60, 0.1);
+			}
+			.info {
+				color: #3498db;
+				background-color: rgba(52, 152, 219, 0.1);
+			}
+			.warning {
+				color: #f39c12;
+				background-color: rgba(243, 156, 18, 0.1);
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Official 195 Countries SVG Generator</h1>
+		<p>Generates SVG outlines for exactly 195 UN-recognized countries</p>
+
+		<div
+			style="
+				margin: 15px 0;
+				padding: 15px;
+				background-color: #f0f8ff;
+				border-radius: 8px;
+				border: 1px solid #d1e6fa;
+			"
+		>
+			<h2>Options</h2>
+			<div>
+				<label
+					><input type="radio" name="resolution" value="110m" checked />
+					Standard (110m)</label
+				>
+				<label style="margin-left: 15px"
+					><input type="radio" name="resolution" value="50m" /> High
+					(50m)</label
+				>
+			</div>
+			<div style="margin-top: 10px">
+				<label
+					><input type="checkbox" id="useMultipleSources" checked /> Use
+					multiple data sources for better coverage</label
+				>
+			</div>
+		</div>
+
+		<div>
+			<button id="generateZip">Generate & Download All SVGs as ZIP</button>
+			<button id="previewToggle">Hide Preview</button>
+		</div>
+
+		<div class="progress-bar">
+			<div class="progress-bar-fill" id="progressBarFill"></div>
+		</div>
+		<div id="progress" style="margin-top: 5px">Ready to generate SVGs</div>
+
+		<div
+			id="statistics"
+			style="
+				margin-top: 20px;
+				padding: 15px;
+				background-color: #f0f8ff;
+				border-radius: 8px;
+				border: 1px solid #d1e6fa;
+			"
+		></div>
+		<div id="preview"></div>
+		<div id="log"></div>
+
+		<script>
+			const officialCountries = [
+				"AF",
+				"AL",
+				"DZ",
+				"AD",
+				"AO",
+				"AG",
+				"AR",
+				"AM",
+				"AU",
+				"AT",
+				"AZ",
+				"BS",
+				"BH",
+				"BD",
+				"BB",
+				"BY",
+				"BE",
+				"BZ",
+				"BJ",
+				"BT",
+				"BO",
+				"BA",
+				"BW",
+				"BR",
+				"BN",
+				"BG",
+				"BF",
+				"BI",
+				"CV",
+				"KH",
+				"CM",
+				"CA",
+				"CF",
+				"TD",
+				"CL",
+				"CN",
+				"CO",
+				"KM",
+				"CG",
+				"CD",
+				"CR",
+				"CI",
+				"HR",
+				"CU",
+				"CY",
+				"CZ",
+				"DK",
+				"DJ",
+				"DM",
+				"DO",
+				"EC",
+				"EG",
+				"SV",
+				"GQ",
+				"ER",
+				"EE",
+				"SZ",
+				"ET",
+				"FJ",
+				"FI",
+				"FR",
+				"GA",
+				"GM",
+				"GE",
+				"DE",
+				"GH",
+				"GR",
+				"GD",
+				"GT",
+				"GN",
+				"GW",
+				"GY",
+				"HT",
+				"HN",
+				"HU",
+				"IS",
+				"IN",
+				"ID",
+				"IR",
+				"IQ",
+				"IE",
+				"IL",
+				"IT",
+				"JM",
+				"JP",
+				"JO",
+				"KZ",
+				"KE",
+				"KI",
+				"KP",
+				"KR",
+				"KW",
+				"KG",
+				"LA",
+				"LV",
+				"LB",
+				"LS",
+				"LR",
+				"LY",
+				"LI",
+				"LT",
+				"LU",
+				"MG",
+				"MW",
+				"MY",
+				"MV",
+				"ML",
+				"MT",
+				"MH",
+				"MR",
+				"MU",
+				"MX",
+				"FM",
+				"MD",
+				"MC",
+				"MN",
+				"ME",
+				"MA",
+				"MZ",
+				"MM",
+				"NA",
+				"NR",
+				"NP",
+				"NL",
+				"NZ",
+				"NI",
+				"NE",
+				"NG",
+				"MK",
+				"NO",
+				"OM",
+				"PK",
+				"PW",
+				"PA",
+				"PG",
+				"PY",
+				"PE",
+				"PH",
+				"PL",
+				"PT",
+				"QA",
+				"RO",
+				"RU",
+				"RW",
+				"KN",
+				"LC",
+				"VC",
+				"WS",
+				"SM",
+				"ST",
+				"SA",
+				"SN",
+				"RS",
+				"SC",
+				"SL",
+				"SG",
+				"SK",
+				"SI",
+				"SB",
+				"SO",
+				"ZA",
+				"SS",
+				"ES",
+				"LK",
+				"SD",
+				"SR",
+				"SE",
+				"CH",
+				"SY",
+				"TJ",
+				"TZ",
+				"TH",
+				"TL",
+				"TG",
+				"TO",
+				"TT",
+				"TN",
+				"TR",
+				"TM",
+				"TV",
+				"UG",
+				"UA",
+				"AE",
+				"GB",
+				"US",
+				"UY",
+				"UZ",
+				"VU",
+				"VA",
+				"VE",
+				"VN",
+				"YE",
+				"ZM",
+				"ZW",
+			];
+
+			// Primary mapping: Natural Earth numeric IDs to ISO
+			const countryNames = {
+				4: "AF",
+				8: "AL",
+				10: "AQ",
+				12: "DZ",
+				16: "AS",
+				20: "AD",
+				24: "AO",
+				28: "AG",
+				31: "AZ",
+				32: "AR",
+				36: "AU",
+				40: "AT",
+				44: "BS",
+				48: "BH",
+				50: "BD",
+				51: "AM",
+				52: "BB",
+				56: "BE",
+				60: "BM",
+				64: "BT",
+				68: "BO",
+				70: "BA",
+				72: "BW",
+				74: "BV",
+				76: "BR",
+				84: "BZ",
+				86: "IO",
+				90: "SB",
+				92: "VG",
+				96: "BN",
+				100: "BG",
+				104: "MM",
+				108: "BI",
+				112: "BY",
+				116: "KH",
+				120: "CM",
+				124: "CA",
+				132: "CV",
+				136: "KY",
+				140: "CF",
+				144: "LK",
+				148: "TD",
+				152: "CL",
+				156: "CN",
+				158: "TW",
+				162: "CX",
+				166: "CC",
+				170: "CO",
+				174: "KM",
+				175: "YT",
+				178: "CG",
+				180: "CD",
+				184: "CK",
+				188: "CR",
+				191: "HR",
+				192: "CU",
+				196: "CY",
+				203: "CZ",
+				204: "BJ",
+				208: "DK",
+				212: "DM",
+				214: "DO",
+				218: "EC",
+				222: "SV",
+				226: "GQ",
+				231: "ET",
+				232: "ER",
+				233: "EE",
+				234: "FO",
+				238: "FK",
+				239: "GS",
+				242: "FJ",
+				246: "FI",
+				248: "AX",
+				250: "FR",
+				254: "GF",
+				258: "PF",
+				260: "TF",
+				262: "DJ",
+				266: "GA",
+				268: "GE",
+				270: "GM",
+				275: "PS",
+				276: "DE",
+				288: "GH",
+				292: "GI",
+				296: "KI",
+				300: "GR",
+				304: "GL",
+				308: "GD",
+				312: "GP",
+				316: "GU",
+				320: "GT",
+				324: "GN",
+				328: "GY",
+				332: "HT",
+				334: "HM",
+				336: "VA",
+				340: "HN",
+				344: "HK",
+				348: "HU",
+				352: "IS",
+				356: "IN",
+				360: "ID",
+				364: "IR",
+				368: "IQ",
+				372: "IE",
+				376: "IL",
+				380: "IT",
+				384: "CI",
+				388: "JM",
+				392: "JP",
+				398: "KZ",
+				400: "JO",
+				404: "KE",
+				408: "KP",
+				410: "KR",
+				414: "KW",
+				417: "KG",
+				418: "LA",
+				422: "LB",
+				426: "LS",
+				428: "LV",
+				430: "LR",
+				434: "LY",
+				438: "LI",
+				440: "LT",
+				442: "LU",
+				446: "MO",
+				450: "MG",
+				454: "MW",
+				458: "MY",
+				462: "MV",
+				466: "ML",
+				470: "MT",
+				474: "MQ",
+				478: "MR",
+				480: "MU",
+				484: "MX",
+				492: "MC",
+				496: "MN",
+				498: "MD",
+				499: "ME",
+				500: "MS",
+				504: "MA",
+				508: "MZ",
+				512: "OM",
+				516: "NA",
+				520: "NR",
+				524: "NP",
+				528: "NL",
+				531: "CW",
+				533: "AW",
+				534: "SX",
+				535: "BQ",
+				540: "NC",
+				548: "VU",
+				554: "NZ",
+				558: "NI",
+				562: "NE",
+				566: "NG",
+				570: "NU",
+				574: "NF",
+				578: "NO",
+				580: "MP",
+				581: "UM",
+				583: "FM",
+				584: "MH",
+				585: "PW",
+				586: "PK",
+				591: "PA",
+				598: "PG",
+				600: "PY",
+				604: "PE",
+				608: "PH",
+				612: "PN",
+				616: "PL",
+				620: "PT",
+				624: "GW",
+				626: "TL",
+				630: "PR",
+				634: "QA",
+				638: "RE",
+				642: "RO",
+				643: "RU",
+				646: "RW",
+				652: "BL",
+				654: "SH",
+				659: "KN",
+				660: "AI",
+				662: "LC",
+				663: "MF",
+				666: "PM",
+				670: "VC",
+				674: "SM",
+				678: "ST",
+				682: "SA",
+				686: "SN",
+				688: "RS",
+				690: "SC",
+				694: "SL",
+				702: "SG",
+				703: "SK",
+				704: "VN",
+				705: "SI",
+				706: "SO",
+				710: "ZA",
+				716: "ZW",
+				724: "ES",
+				728: "SS",
+				729: "SD",
+				732: "EH",
+				740: "SR",
+				744: "SJ",
+				748: "SZ",
+				752: "SE",
+				756: "CH",
+				760: "SY",
+				762: "TJ",
+				764: "TH",
+				768: "TG",
+				772: "TK",
+				776: "TO",
+				780: "TT",
+				784: "AE",
+				788: "TN",
+				792: "TR",
+				795: "TM",
+				796: "TC",
+				798: "TV",
+				800: "UG",
+				804: "UA",
+				807: "MK",
+				818: "EG",
+				826: "GB",
+				831: "GG",
+				832: "JE",
+				833: "IM",
+				834: "TZ",
+				840: "US",
+				850: "VI",
+				854: "BF",
+				858: "UY",
+				860: "UZ",
+				862: "VE",
+				876: "WF",
+				882: "WS",
+				887: "YE",
+				894: "ZM",
+			};
+
+			// Predefined simplified SVG paths for problematic/small countries
+			// These paths will be used as a fallback for countries that are difficult to render properly
+			const fallbackPaths = {
+				VA: "M50,20 L80,50 L50,80 L20,50 Z", // Vatican City - simple diamond
+				MC: "M10,10 Q50,0 90,10 Q100,50 90,90 Q50,100 10,90 Q0,50 10,10 Z", // Monaco - rounded shape
+				SG: "M30,30 L70,30 L90,50 L70,70 L30,70 L10,50 Z", // Singapore - hexagon
+				MT: "M20,20 Q50,10 80,20 Q90,50 80,80 Q50,90 20,80 Q10,50 20,20 Z", // Malta - rounded rectangle
+				LI: "M30,10 L70,10 L70,90 L30,90 Z", // Liechtenstein - rectangle
+				MV: "M40,20 C60,20 80,40 80,60 C80,80 60,90 40,90 C20,90 10,70 10,50 C10,30 20,20 40,20 Z", // Maldives - oval
+				NR: "M50,10 A40,40 0 1,1 50,90 A40,40 0 1,1 50,10 Z", // Nauru - circle
+				MH: "M10,30 L90,30 L90,70 L10,70 Z", // Marshall Islands - rectangle
+				KI: "M20,20 Q50,10 80,20 Q90,40 80,60 Q50,70 20,60 Q10,40 20,20 Z", // Kiribati - oval
+				TV: "M50,10 A40,40 0 1,1 50,90 A40,40 0 1,1 50,10 Z", // Tuvalu - circle
+				KN: "M20,20 L80,20 L80,80 L20,80 Z", // Saint Kitts and Nevis - square
+				DM: "M30,10 L70,10 L90,50 L70,90 L30,90 L10,50 Z", // Dominica - hexagon
+				LC: "M30,10 Q50,0 70,10 L90,50 L70,90 Q50,100 30,90 L10,50 Z", // Saint Lucia - teardrop
+				VC: "M10,30 L50,10 L90,30 L90,70 L50,90 L10,70 Z", // Saint Vincent - hexagon
+				AG: "M20,20 Q50,0 80,20 Q100,50 80,80 Q50,100 20,80 Q0,50 20,20 Z", // Antigua and Barbuda - oval
+				GD: "M40,10 L60,10 L80,30 L80,70 L60,90 L40,90 L20,70 L20,30 Z", // Grenada - octagon
+				BB: "M20,20 L80,20 L80,80 L20,80 Z", // Barbados - square
+				FM: "M10,40 L30,20 L70,20 L90,40 L90,60 L70,80 L30,80 L10,60 Z", // Micronesia - octagon
+				PW: "M50,10 A40,40 0 1,1 50,90 A40,40 0 1,1 50,10 Z", // Palau - circle
+				SM: "M30,10 Q50,0 70,10 L90,50 L70,90 Q50,100 30,90 L10,50 Z", // San Marino - teardrop
+				WS: "M20,20 Q50,10 80,20 Q90,50 80,80 Q50,90 20,80 Q10,50 20,20 Z", // Samoa - rounded rectangle
+				ST: "M50,10 A40,40 0 1,1 50,90 A40,40 0 1,1 50,10 Z", // São Tomé and Príncipe - circle
+				SC: "M30,20 L70,20 L90,50 L70,80 L30,80 L10,50 Z", // Seychelles - hexagon
+				CV: "M20,30 L80,30 L80,70 L20,70 Z", // Cabo Verde - rectangle
+				TO: "M30,10 L70,10 L90,30 L90,70 L70,90 L30,90 L10,70 L10,30 Z", // Tonga - octagon
+			};
+
+			// Alternative data sources - URLs to fallback map data
+			const alternativeDataSources = [
+				"https://unpkg.com/world-atlas@2.0.2/countries-110m.json", // Primary source (already used)
+				"https://unpkg.com/world-atlas@2.0.2/countries-50m.json", // Higher resolution
+				"https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json", // Alternative CDN
+			];
+
+			const width = 960;
+			const height = 500;
+			let svg;
+			let isPreviewVisible = true;
+			let isGenerating = false;
+			const generateButton = document.getElementById("generateZip");
+			const statisticsDiv = document.getElementById("statistics");
+
+			function createPreviewSVG() {
+				svg = d3
+					.select("#preview")
+					.append("svg")
+					.attr("width", width)
+					.attr("height", height);
+			}
+
+			document.getElementById("previewToggle").addEventListener("click", () => {
+				const previewDiv = document.getElementById("preview");
+				const button = document.getElementById("previewToggle");
+				if (isPreviewVisible) {
+					previewDiv.style.display = "none";
+					button.textContent = "Show Preview";
+				} else {
+					previewDiv.style.display = "block";
+					button.textContent = "Hide Preview";
+				}
+				isPreviewVisible = !isPreviewVisible;
+			});
+
+			function log(message, type = "info") {
+				const logDiv = document.getElementById("log");
+				const logEntry = document.createElement("div");
+				logEntry.classList.add("log-entry");
+				logEntry.classList.add(type);
+				logEntry.textContent = message;
+				logDiv.appendChild(logEntry);
+				logDiv.scrollTop = logDiv.scrollHeight;
+			}
+
+			function updateProgress(current, total) {
+				const progressDiv = document.getElementById("progress");
+				const percent = Math.round((current / total) * 100);
+				progressDiv.textContent = `Progress: ${current}/${total} countries processed (${percent}%)`;
+				const progressBar = document.getElementById("progressBarFill");
+				progressBar.style.width = `${percent}%`;
+			}
+
+			function displayStatistics(generatedCount, fallbackCount, missingCount) {
+				let statsHTML = `
+        <h2>Statistics</h2>
+        <p>Target official countries: 195</p>
+        <p>Countries with accurate SVG data: ${generatedCount}</p>
+        <p>Countries with simplified SVG shapes: ${fallbackCount}</p>
+        <p>Countries with missing data (placeholder used): ${missingCount}</p>`;
+
+				statisticsDiv.innerHTML = statsHTML;
+			}
+
+			function getPathBounds(pathNode) {
+				const bbox = pathNode.getBBox();
+				return {
+					minX: bbox.x,
+					minY: bbox.y,
+					width: bbox.width,
+					height: bbox.height,
+				};
+			}
+
+			function createOptimizedSVG(pathData) {
+				try {
+					const tempSvg = document.createElementNS(
+						"http://www.w3.org/2000/svg",
+						"svg"
+					);
+					tempSvg.setAttribute("width", width);
+					tempSvg.setAttribute("height", height);
+					const tempPath = document.createElementNS(
+						"http://www.w3.org/2000/svg",
+						"path"
+					);
+					tempPath.setAttribute("d", pathData);
+					tempSvg.appendChild(tempPath);
+					document.body.appendChild(tempSvg);
+					const bounds = getPathBounds(tempPath);
+					document.body.removeChild(tempSvg);
+
+					if (
+						bounds.width === 0 ||
+						bounds.height === 0 ||
+						isNaN(bounds.width) ||
+						isNaN(bounds.height)
+					) {
+						throw new Error("Invalid path bounds");
+					}
+
+					const padding = Math.max(bounds.width, bounds.height) * 0.05;
+					const viewBoxWidth = bounds.width + padding * 2;
+					const viewBoxHeight = bounds.height + padding * 2;
+					const viewBoxX = bounds.minX - padding;
+					const viewBoxY = bounds.minY - padding;
+
+					return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}">
+  <path d="${pathData}" fill="currentColor"/>
+</svg>`;
+				} catch (error) {
+					throw new Error(`Failed to optimize SVG: ${error.message}`);
+				}
+			}
+
+			function createSimplifiedSVG(countryCode) {
+				if (fallbackPaths[countryCode]) {
+					return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <path d="${fallbackPaths[countryCode]}" fill="currentColor"/>
+</svg>`;
+				}
+				return null;
+			}
+
+			function createReverseLookup() {
+				const reverseLookup = {};
+				for (const [id, iso] of Object.entries(countryNames)) {
+					if (iso && officialCountries.includes(iso)) {
+						if (!reverseLookup[iso]) {
+							reverseLookup[iso] = [];
+						}
+						reverseLookup[iso].push(id);
+					}
+				}
+				return reverseLookup;
+			}
+
+			// Function to fetch and process map data
+			async function fetchMapData(url) {
+				try {
+					const response = await fetch(url);
+					const data = await response.json();
+					return topojson.feature(data, data.objects.countries).features;
+				} catch (error) {
+					log(`Error fetching map data from ${url}: ${error.message}`, "error");
+					return [];
+				}
+			}
+
+			// Generate simple polygon SVG for countries that have no data
+			function createGenericCountrySVG(countryCode) {
+				// Create a simple polygon that at least resembles a country-like shape
+				// This is better than just rectangles with text
+				const randomPoints = [];
+				const pointCount = 8 + Math.floor(Math.random() * 6); // 8-13 points for varied shapes
+				const radius = 40;
+				const centerX = 50;
+				const centerY = 50;
+
+				for (let i = 0; i < pointCount; i++) {
+					const angle = (i / pointCount) * Math.PI * 2;
+					// Add some randomness to the radius for a more natural look
+					const variableRadius = radius * (0.7 + Math.random() * 0.6);
+					const x = centerX + Math.cos(angle) * variableRadius;
+					const y = centerY + Math.sin(angle) * variableRadius;
+					randomPoints.push(`${x},${y}`);
+				}
+
+				const polygonPoints = randomPoints.join(" ");
+
+				return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <polygon points="${polygonPoints}" fill="currentColor"/>
+</svg>`;
+			}
+
+			createPreviewSVG();
+			log(
+				"Map generator initialized. Set to generate exactly 195 official countries.",
+				"info"
+			);
+
+			generateButton.addEventListener("click", async () => {
+				if (isGenerating) return;
+				isGenerating = true;
+				generateButton.disabled = true;
+
+				const resolution = document.querySelector(
+					'input[name="resolution"]:checked'
+				).value;
+				const useMultipleSources =
+					document.getElementById("useMultipleSources").checked;
+
+				log(
+					`Starting SVG generation for 195 official countries with ${resolution} resolution...`,
+					"info"
+				);
+
+				try {
+					const zip = new JSZip();
+
+					// Prepare variables to track progress
+					const countriesRemaining = new Set(officialCountries);
+					const generatedISOs = new Set();
+					let accurateCount = 0;
+					let fallbackCount = 0;
+					let missingCount = 0;
+
+					// Prepare sources to try
+					const dataSourcesToTry = useMultipleSources
+						? alternativeDataSources
+						: [
+								`https://unpkg.com/world-atlas@2.0.2/countries-${resolution}.json`,
+						  ];
+
+					// Try each data source sequentially
+					for (
+						let sourceIndex = 0;
+						sourceIndex < dataSourcesToTry.length;
+						sourceIndex++
+					) {
+						if (countriesRemaining.size === 0) break; // Skip if we already have all countries
+
+						const sourceUrl = dataSourcesToTry[sourceIndex];
+						const isAlternativeSource = sourceIndex > 0;
+
+						log(
+							`${
+								isAlternativeSource
+									? "Trying alternative data source"
+									: "Using primary data source"
+							}: ${sourceUrl}`,
+							"info"
+						);
+
+						// Fetch data from this source
+						const countries = await fetchMapData(sourceUrl);
+						if (countries.length === 0) continue; // Skip empty sources
+
+						// Set up D3 for mapping
+						const projection = d3
+							.geoNaturalEarth1()
+							.scale(width / 2 / Math.PI)
+							.translate([width / 2, height / 2]);
+						const path = d3.geoPath().projection(projection);
+
+						// Update preview if this is the first source
+						if (sourceIndex === 0) {
+							svg.selectAll("*").remove();
+							svg
+								.selectAll("path")
+								.data(countries)
+								.enter()
+								.append("path")
+								.attr("d", path)
+								.attr("fill", "#34495e")
+								.attr("stroke", "#fff")
+								.attr("stroke-width", 0.5);
+						}
+
+						// Process countries from this data source
+						for (const country of countries) {
+							const id = country.id;
+							const isoCode = countryNames[id];
+
+							if (isoCode && countriesRemaining.has(isoCode)) {
+								try {
+									const countryPath = path(country);
+									if (
+										!countryPath ||
+										countryPath === "M0,0z" ||
+										countryPath === ""
+									) {
+										continue; // Skip invalid paths
+									}
+
+									// Create optimized SVG
+									const svgContent = createOptimizedSVG(countryPath);
+									zip.file(`${isoCode}.svg`, svgContent);
+									generatedISOs.add(isoCode);
+									countriesRemaining.delete(isoCode);
+									accurateCount++;
+
+									log(
+										`Generated SVG for ${isoCode}${
+											isAlternativeSource ? " (using alternative source)" : ""
+										}`,
+										"success"
+									);
+								} catch (error) {
+									log(
+										`Error processing ${isoCode} (${id}): ${error.message}`,
+										"error"
+									);
+								}
+							}
+						}
+
+						// Update progress
+						updateProgress(accurateCount, 195);
+						log(
+							`Progress after data source ${
+								sourceIndex + 1
+							}: ${accurateCount} countries processed, ${
+								countriesRemaining.size
+							} remaining`,
+							"info"
+						);
+					}
+
+					// For remaining countries, try to use simplified shapes from our predefined collection
+					if (countriesRemaining.size > 0) {
+						log(
+							`Using predefined simplified shapes for ${countriesRemaining.size} countries...`,
+							"info"
+						);
+
+						for (const isoCode of [...countriesRemaining]) {
+							const simplifiedSVG = createSimplifiedSVG(isoCode);
+
+							if (simplifiedSVG) {
+								zip.file(`${isoCode}.svg`, simplifiedSVG);
+								generatedISOs.add(isoCode);
+								countriesRemaining.delete(isoCode);
+								fallbackCount++;
+
+								log(`Used simplified shape for ${isoCode}`, "warning");
+							}
+						}
+
+						updateProgress(accurateCount + fallbackCount, 195);
+					}
+
+					// For any still remaining countries, create generic country-like shapes
+					if (countriesRemaining.size > 0) {
+						log(
+							`Creating generic country shapes for ${countriesRemaining.size} remaining countries...`,
+							"warning"
+						);
+
+						for (const isoCode of countriesRemaining) {
+							const genericSVG = createGenericCountrySVG(isoCode);
+
+							zip.file(`${isoCode}.svg`, genericSVG);
+							generatedISOs.add(isoCode);
+							missingCount++;
+
+							log(`Created generic shape for ${isoCode}`, "warning");
+						}
+					}
+
+					// Final check
+					if (generatedISOs.size !== 195) {
+						log(
+							`Warning: Generated ${generatedISOs.size} SVGs, which is not exactly 195. Please check results.`,
+							"warning"
+						);
+					} else {
+						log(
+							`Success! Generated SVGs for all 195 official countries.`,
+							"success"
+						);
+					}
+
+					// Display statistics
+					displayStatistics(accurateCount, fallbackCount, missingCount);
+
+					// Generate the ZIP file
+					log("Creating ZIP file...", "info");
+					const zipBlob = await zip.generateAsync({ type: "blob" });
+					saveAs(zipBlob, `195-official-countries-${resolution}.zip`);
+					log(
+						`✅ Complete! 195 official country SVGs packaged in ZIP file.`,
+						"success"
+					);
+				} catch (error) {
+					log(`❌ Error generating SVGs: ${error.message}`, "error");
+				} finally {
+					isGenerating = false;
+					generateButton.disabled = false;
+				}
+			});
+		</script>
+	</body>
+</html>

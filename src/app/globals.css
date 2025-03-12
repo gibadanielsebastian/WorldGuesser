@@ -13,8 +13,31 @@
 	--border-radius: 0.5rem;
 }
 
+/* Dark theme */
+.theme-dark {
+	--background: #222831;
+	--foreground: #eeeeee;
+	--foreground-muted: rgba(238, 238, 238, 0.2);
+	--main: #00adb5;
+	--main-hover: #00c2cc;
+	--error: #e74c3c;
+	--success: #2ecc71;
+}
+
+/* Light theme */
+.theme-light {
+	--background: #eeeeee;
+	--foreground: #222831;
+	--foreground-muted: rgba(34, 40, 49, 0.2);
+	--main: #00adb5;
+	--main-hover: #008f96;
+	--error: #e74c3c;
+	--success: #2ecc71;
+}
+
+/* Default to system preference if no theme class is applied */
 @media (prefers-color-scheme: dark) {
-	:root {
+	:root:not(.theme-light):not(.theme-dark) {
 		--background: #222831;
 		--foreground: #eeeeee;
 		--foreground-muted: rgba(238, 238, 238, 0.2);

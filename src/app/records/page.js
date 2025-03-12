@@ -11,6 +11,7 @@ const itim = Itim({
 
 export default function Records() {
 	const [activeTab, setActiveTab] = useState("guessTheFlag");
+	const [activeDifficulty, setActiveDifficulty] = useState("all");
 	const [records, setRecords] = useState({
 		guessTheFlag: [],
 		nameTheCountry: [],
@@ -44,6 +45,7 @@ export default function Records() {
 
 	// Generate demo records for display purposes
 	const generateDemoRecords = (gameMode) => {
+		const difficulties = ["easy", "medium", "hard"];
 		const demoRecords = [];
 		for (let i = 0; i < 5; i++) {
 			demoRecords.push({
@@ -56,19 +58,31 @@ export default function Records() {
 					.split("T")[0],
 				time: Math.floor(Math.random() * 120) + 1,
 				gameMode,
+				difficulty:
+					difficulties[Math.floor(Math.random() * difficulties.length)],
 			});
 		}
 		return demoRecords.sort((a, b) => b.score - a.score);
 	};
 
-	// Get records for the active tab
+	// Get records for the active tab and filter by difficulty if needed
 	const getActiveRecords = () => {
 		const recordMap = {
 			guessTheFlag: records.guessTheFlag,
 			nameTheCountry: records.nameTheCountry,
 			findTheCountry: records.findTheCountry,
 		};
-		return recordMap[activeTab] || [];
+
+		let filteredRecords = recordMap[activeTab] || [];
+
+		// Filter by difficulty if not "all"
+		if (activeDifficulty !== "all") {
+			filteredRecords = filteredRecords.filter(
+				(record) => record.difficulty === activeDifficulty
+			);
+		}
+
+		return filteredRecords;
 	};
 
 	// Clear records for the active game mode
@@ -95,7 +109,7 @@ export default function Records() {
 				</h1>
 
 				{/* Game Mode Tabs */}
-				<div className="flex flex-wrap justify-center mb-8">
+				<div className="flex flex-wrap justify-center mb-6">
 					<button
 						className={`px-4 py-2 ${
 							activeTab === "guessTheFlag"
@@ -128,6 +142,50 @@ export default function Records() {
 					</button>
 				</div>
 
+				{/* Difficulty Filters */}
+				<div className="flex flex-wrap justify-center mb-6">
+					<button
+						className={`px-3 py-1 text-sm ${
+							activeDifficulty === "all"
+								? "bg-[var(--main)] text-[#eeeeee]"
+								: "bg-[var(--foreground-muted)] bg-opacity-50 text-[var(--foreground)]"
+						} rounded-l-lg transition-colors duration-300`}
+						onClick={() => setActiveDifficulty("all")}
+					>
+						All Difficulties
+					</button>
+					<button
+						className={`px-3 py-1 text-sm ${
+							activeDifficulty === "easy"
+								? "bg-[var(--main)] text-[#eeeeee]"
+								: "bg-[var(--foreground-muted)] bg-opacity-50 text-[var(--foreground)]"
+						} transition-colors duration-300`}
+						onClick={() => setActiveDifficulty("easy")}
+					>
+						Easy
+					</button>
+					<button
+						className={`px-3 py-1 text-sm ${
+							activeDifficulty === "medium"
+								? "bg-[var(--main)] text-[#eeeeee]"
+								: "bg-[var(--foreground-muted)] bg-opacity-50 text-[var(--foreground)]"
+						} transition-colors duration-300`}
+						onClick={() => setActiveDifficulty("medium")}
+					>
+						Medium
+					</button>
+					<button
+						className={`px-3 py-1 text-sm ${
+							activeDifficulty === "hard"
+								? "bg-[var(--main)] text-[#eeeeee]"
+								: "bg-[var(--foreground-muted)] bg-opacity-50 text-[var(--foreground)]"
+						} rounded-r-lg transition-colors duration-300`}
+						onClick={() => setActiveDifficulty("hard")}
+					>
+						Hard
+					</button>
+				</div>
+
 				{/* Records Table */}
 				<div className="overflow-x-auto">
 					<table className="w-full border-collapse">
@@ -137,6 +195,7 @@ export default function Records() {
 								<th className="p-2 text-left">Score</th>
 								<th className="p-2 text-left">Date</th>
 								<th className="p-2 text-left">Time (sec)</th>
+								<th className="p-2 text-left">Difficulty</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -154,11 +213,14 @@ export default function Records() {
 										<td className="p-2">{record.score}</td>
 										<td className="p-2">{record.date}</td>
 										<td className="p-2">{record.time}</td>
+										<td className="p-2 capitalize">
+											{record.difficulty || "medium"}
+										</td>
 									</tr>
 								))
 							) : (
 								<tr>
-									<td colSpan="4" className="p-4 text-center">
+									<td colSpan="5" className="p-4 text-center">
 										No records found. Play some games to set records!
 									</td>
 								</tr>

@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@svg-maps/world": "^1.0.1",
     "@svgr/webpack": "^8.1.0",
     "country-flag-icons": "^1.5.18",
     "next": "15.1.6",

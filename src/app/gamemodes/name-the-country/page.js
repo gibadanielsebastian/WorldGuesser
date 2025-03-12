@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Itim } from "next/font/google";
+import { useSettings } from "../../contexts/SettingsContext";
 
 const itim = Itim({
 	subsets: ["latin"],
@@ -11,71 +12,424 @@ const itim = Itim({
 });
 
 export default function NameTheCountry() {
-	const countriesData = useMemo(
+	const { difficulty, soundEnabled } = useSettings();
+
+	// Base settings for different difficulty levels
+	const difficultySettings = useMemo(
+		() => ({
+			easy: {
+				timeLimit: 150,
+				bonusTime: 7,
+				countriesCount: 20, // Use fewer countries for easy mode
+			},
+			medium: {
+				timeLimit: 120,
+				bonusTime: 5,
+				countriesCount: 40, // Use more countries for medium mode
+			},
+			hard: {
+				timeLimit: 90,
+				bonusTime: 3,
+				countriesCount: 60, // Use most countries for hard mode
+			},
+		}),
+		[]
+	);
+
+	// All possible countries data
+	const allCountriesData = useMemo(
 		() => [
 			{
 				code: "US",
 				name: "United States",
 				hint: "Second largest country in North America",
+				difficulty: "easy",
 			},
-			{ code: "CN", name: "China", hint: "Most populous country in the world" },
+			{
+				code: "CN",
+				name: "China",
+				hint: "Most populous country in the world",
+				difficulty: "easy",
+			},
 			{
 				code: "IN",
 				name: "India",
 				hint: "Second most populous country in the world",
+				difficulty: "easy",
 			},
-			{ code: "BR", name: "Brazil", hint: "Largest country in South America" },
-			{ code: "RU", name: "Russia", hint: "Largest country by land area" },
-			{ code: "JP", name: "Japan", hint: "Island nation in East Asia" },
-			{ code: "DE", name: "Germany", hint: "Central European country" },
+			{
+				code: "BR",
+				name: "Brazil",
+				hint: "Largest country in South America",
+				difficulty: "easy",
+			},
+			{
+				code: "RU",
+				name: "Russia",
+				hint: "Largest country by land area",
+				difficulty: "easy",
+			},
+			{
+				code: "JP",
+				name: "Japan",
+				hint: "Island nation in East Asia",
+				difficulty: "easy",
+			},
+			{
+				code: "DE",
+				name: "Germany",
+				hint: "Central European country",
+				difficulty: "easy",
+			},
 			{
 				code: "GB",
 				name: "United Kingdom",
 				hint: "Island nation in Northwestern Europe",
+				difficulty: "easy",
 			},
 			{
 				code: "FR",
 				name: "France",
 				hint: "Western European country known for the Eiffel Tower",
+				difficulty: "easy",
 			},
 			{
 				code: "IT",
 				name: "Italy",
 				hint: "Southern European country shaped like a boot",
+				difficulty: "easy",
 			},
 			{
 				code: "CA",
 				name: "Canada",
 				hint: "Second largest country by land area",
+				difficulty: "easy",
 			},
 			{
 				code: "AU",
 				name: "Australia",
 				hint: "Country that is also a continent",
+				difficulty: "easy",
 			},
-			{ code: "ES", name: "Spain", hint: "Southwestern European country" },
+			{
+				code: "ES",
+				name: "Spain",
+				hint: "Southwestern European country",
+				difficulty: "easy",
+			},
 			{
 				code: "MX",
 				name: "Mexico",
 				hint: "North American country south of the US",
+				difficulty: "easy",
 			},
-			{ code: "KR", name: "South Korea", hint: "East Asian country" },
-			{ code: "ID", name: "Indonesia", hint: "Southeast Asian archipelago" },
-			{ code: "TR", name: "Turkey", hint: "Transcontinental country" },
-			{ code: "SA", name: "Saudi Arabia", hint: "Middle Eastern country" },
+			{
+				code: "KR",
+				name: "South Korea",
+				hint: "East Asian country",
+				difficulty: "easy",
+			},
+			{
+				code: "ID",
+				name: "Indonesia",
+				hint: "Southeast Asian archipelago",
+				difficulty: "easy",
+			},
+			{
+				code: "TR",
+				name: "Turkey",
+				hint: "Transcontinental country",
+				difficulty: "easy",
+			},
+			{
+				code: "SA",
+				name: "Saudi Arabia",
+				hint: "Middle Eastern country",
+				difficulty: "easy",
+			},
 			{
 				code: "ZA",
 				name: "South Africa",
 				hint: "Southernmost country in Africa",
+				difficulty: "easy",
 			},
 			{
 				code: "AR",
 				name: "Argentina",
 				hint: "South American country known for tango",
+				difficulty: "easy",
+			},
+			// Medium difficulty countries
+			{
+				code: "PL",
+				name: "Poland",
+				hint: "Central European country",
+				difficulty: "medium",
+			},
+			{
+				code: "UA",
+				name: "Ukraine",
+				hint: "Eastern European country",
+				difficulty: "medium",
+			},
+			{
+				code: "EG",
+				name: "Egypt",
+				hint: "North African country with pyramids",
+				difficulty: "medium",
+			},
+			{
+				code: "VN",
+				name: "Vietnam",
+				hint: "Southeast Asian country",
+				difficulty: "medium",
+			},
+			{
+				code: "IR",
+				name: "Iran",
+				hint: "Middle Eastern country",
+				difficulty: "medium",
+			},
+			{
+				code: "TH",
+				name: "Thailand",
+				hint: "Southeast Asian kingdom",
+				difficulty: "medium",
+			},
+			{
+				code: "PH",
+				name: "Philippines",
+				hint: "Island nation in Southeast Asia",
+				difficulty: "medium",
+			},
+			{
+				code: "MY",
+				name: "Malaysia",
+				hint: "Southeast Asian country with two main regions",
+				difficulty: "medium",
+			},
+			{
+				code: "CO",
+				name: "Colombia",
+				hint: "South American country on the Pacific and Caribbean",
+				difficulty: "medium",
+			},
+			{
+				code: "NL",
+				name: "Netherlands",
+				hint: "Western European country with tulips and windmills",
+				difficulty: "medium",
+			},
+			{
+				code: "BE",
+				name: "Belgium",
+				hint: "Western European country known for chocolate",
+				difficulty: "medium",
+			},
+			{
+				code: "SE",
+				name: "Sweden",
+				hint: "Nordic country",
+				difficulty: "medium",
+			},
+			{
+				code: "CH",
+				name: "Switzerland",
+				hint: "Alpine country in Europe",
+				difficulty: "medium",
+			},
+			{
+				code: "AT",
+				name: "Austria",
+				hint: "Central European country",
+				difficulty: "medium",
+			},
+			{
+				code: "PT",
+				name: "Portugal",
+				hint: "Country on the Iberian Peninsula",
+				difficulty: "medium",
+			},
+			{
+				code: "GR",
+				name: "Greece",
+				hint: "Mediterranean country with ancient history",
+				difficulty: "medium",
+			},
+			{
+				code: "CZ",
+				name: "Czech Republic",
+				hint: "Central European country",
+				difficulty: "medium",
+			},
+			{
+				code: "ZA",
+				name: "South Africa",
+				hint: "Country at the southern tip of Africa",
+				difficulty: "medium",
+			},
+			{
+				code: "NO",
+				name: "Norway",
+				hint: "Nordic country with fjords",
+				difficulty: "medium",
+			},
+			{
+				code: "FI",
+				name: "Finland",
+				hint: "Nordic country with many lakes",
+				difficulty: "medium",
+			},
+			// Hard difficulty countries
+			{
+				code: "BD",
+				name: "Bangladesh",
+				hint: "South Asian country",
+				difficulty: "hard",
+			},
+			{
+				code: "NG",
+				name: "Nigeria",
+				hint: "West African country",
+				difficulty: "hard",
+			},
+			{
+				code: "ET",
+				name: "Ethiopia",
+				hint: "East African country",
+				difficulty: "hard",
+			},
+			{
+				code: "TZ",
+				name: "Tanzania",
+				hint: "East African country with Kilimanjaro",
+				difficulty: "hard",
+			},
+			{
+				code: "MM",
+				name: "Myanmar",
+				hint: "Southeast Asian country formerly called Burma",
+				difficulty: "hard",
+			},
+			{
+				code: "KE",
+				name: "Kenya",
+				hint: "East African country",
+				difficulty: "hard",
+			},
+			{
+				code: "MA",
+				name: "Morocco",
+				hint: "North African country",
+				difficulty: "hard",
+			},
+			{
+				code: "UZ",
+				name: "Uzbekistan",
+				hint: "Central Asian country",
+				difficulty: "hard",
+			},
+			{
+				code: "PE",
+				name: "Peru",
+				hint: "South American country with Machu Picchu",
+				difficulty: "hard",
+			},
+			{
+				code: "AO",
+				name: "Angola",
+				hint: "Southwestern African country",
+				difficulty: "hard",
+			},
+			{
+				code: "LK",
+				name: "Sri Lanka",
+				hint: "Island nation south of India",
+				difficulty: "hard",
+			},
+			{
+				code: "CI",
+				name: "Ivory Coast",
+				hint: "West African country",
+				difficulty: "hard",
+			},
+			{
+				code: "GH",
+				name: "Ghana",
+				hint: "West African country",
+				difficulty: "hard",
+			},
+			{
+				code: "RO",
+				name: "Romania",
+				hint: "Southeastern European country",
+				difficulty: "hard",
+			},
+			{
+				code: "CL",
+				name: "Chile",
+				hint: "Long, narrow South American country",
+				difficulty: "hard",
+			},
+			{
+				code: "BW",
+				name: "Botswana",
+				hint: "Southern African landlocked country",
+				difficulty: "hard",
+			},
+			{
+				code: "TN",
+				name: "Tunisia",
+				hint: "North African country",
+				difficulty: "hard",
+			},
+			{
+				code: "BO",
+				name: "Bolivia",
+				hint: "South American landlocked country",
+				difficulty: "hard",
+			},
+			{
+				code: "CM",
+				name: "Cameroon",
+				hint: "Central African country",
+				difficulty: "hard",
+			},
+			{
+				code: "RS",
+				name: "Serbia",
+				hint: "Southeastern European country",
+				difficulty: "hard",
 			},
 		],
 		[]
 	);
+
+	// Filter countries based on current difficulty
+	const countriesData = useMemo(() => {
+		let filtered = [];
+
+		// For easy, only include easy countries
+		if (difficulty === "easy") {
+			filtered = allCountriesData.filter(
+				(country) => country.difficulty === "easy"
+			);
+		}
+		// For medium, include easy and medium
+		else if (difficulty === "medium") {
+			filtered = allCountriesData.filter(
+				(country) =>
+					country.difficulty === "easy" || country.difficulty === "medium"
+			);
+		}
+		// For hard, include all difficulties
+		else {
+			filtered = allCountriesData;
+		}
+
+		// Limit to the count for the current difficulty
+		return filtered.slice(0, difficultySettings[difficulty].countriesCount);
+	}, [allCountriesData, difficulty, difficultySettings]);
 
 	const [isStarted, setIsStarted] = useState(false);
 	const [isOn, setIsOn] = useState(false);
@@ -90,7 +444,27 @@ export default function NameTheCountry() {
 
 	const [isCorrect, setIsCorrect] = useState(0);
 	const [isWrong, setIsWrong] = useState(0);
-	const [timeLeft, setTimeLeft] = useState(120);
+	const [timeLeft, setTimeLeft] = useState(
+		difficultySettings[difficulty].timeLimit
+	);
+
+	// Play sound effect when enabled
+	const playSound = useCallback(
+		(type) => {
+			if (!soundEnabled) return;
+
+			// Create audio elements for sounds
+			const correctSound = new Audio("/sounds/correct.mp3");
+			const wrongSound = new Audio("/sounds/wrong.mp3");
+
+			if (type === "correct") {
+				correctSound.play();
+			} else if (type === "wrong") {
+				wrongSound.play();
+			}
+		},
+		[soundEnabled]
+	);
 
 	// Start countdown
 	useEffect(() => {
@@ -120,8 +494,9 @@ export default function NameTheCountry() {
 				id: Date.now(),
 				score: isCorrect,
 				date: new Date().toISOString().split("T")[0],
-				time: 120, // Original time limit
+				time: difficultySettings[difficulty].timeLimit, // Original time limit
 				gameMode: "Name the Country",
+				difficulty: difficulty,
 			};
 
 			// Get existing records
@@ -144,14 +519,14 @@ export default function NameTheCountry() {
 			// Reset the game
 			setIsStarted(false);
 			setIsOn(false);
-			setTimeLeft(120);
+			setTimeLeft(difficultySettings[difficulty].timeLimit);
 			setIsCorrect(0);
 			setIsWrong(0);
 			setInputValue("");
 			setUsedCountries([]);
 			setShowHint(false);
 		}
-	}, [isOn, timeLeft, isCorrect]);
+	}, [isOn, timeLeft, isCorrect, difficulty, difficultySettings]);
 
 	const getRandomCountry = useCallback(() => {
 		let newIndex;
@@ -181,7 +556,8 @@ export default function NameTheCountry() {
 		// Check if answer is correct
 		if (correctAnswer === userAnswer) {
 			setIsCorrect((prev) => prev + 1);
-			setTimeLeft((prev) => prev + 5); // Bonus time
+			setTimeLeft((prev) => prev + difficultySettings[difficulty].bonusTime); // Bonus time based on difficulty
+			playSound("correct");
 			setInputValue("");
 			setUsedCountries((prev) => [...prev, randomCountryIndex]);
 			setRandomCountryIndex(getRandomCountry());
@@ -191,6 +567,7 @@ export default function NameTheCountry() {
 
 	const handleSkip = () => {
 		setIsWrong((prev) => prev + 1);
+		playSound("wrong");
 		setInputValue("");
 		setUsedCountries((prev) => [...prev, randomCountryIndex]);
 		setRandomCountryIndex(getRandomCountry());
@@ -210,6 +587,30 @@ export default function NameTheCountry() {
 						hint if you&apos;re stuck. Try to be as fast as possible to beat
 						your highest score!
 					</p>
+					<div className="mb-6">
+						<p className="text-lg font-medium mb-2">
+							Current Difficulty:{" "}
+							<span className="text-[var(--main)]">
+								{difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+							</span>
+						</p>
+						<p className="text-sm">
+							{difficulty === "easy"
+								? `${difficultySettings.easy.countriesCount} common countries, ${difficultySettings.easy.timeLimit}s time limit, +${difficultySettings.easy.bonusTime}s bonus time`
+								: difficulty === "medium"
+								? `${difficultySettings.medium.countriesCount} countries, ${difficultySettings.medium.timeLimit}s time limit, +${difficultySettings.medium.bonusTime}s bonus time`
+								: `${difficultySettings.hard.countriesCount} countries including difficult ones, ${difficultySettings.hard.timeLimit}s time limit, +${difficultySettings.hard.bonusTime}s bonus time`}
+						</p>
+						<p className="text-sm mt-2">
+							Change difficulty in{" "}
+							<Link
+								href="/settings"
+								className="text-[var(--main)] hover:underline"
+							>
+								Settings
+							</Link>
+						</p>
+					</div>
 					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						<button
 							onClick={() => setIsStarted(true)}
@@ -262,7 +663,7 @@ export default function NameTheCountry() {
 							</div>
 
 							{showHint && (
-								<div className="text-lg italic">
+								<div className="text-lg italic mb-4 bg-[var(--foreground-muted)] bg-opacity-20 p-3 rounded-lg">
 									Hint: {countriesData[randomCountryIndex].hint}
 								</div>
 							)}
