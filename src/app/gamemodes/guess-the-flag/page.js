@@ -212,6 +212,208 @@ export default function GuessTheFlag() {
 		[]
 	);
 
+	// Hints for countries
+	const countryHints = useMemo(
+		() => ({
+			AF: "Landlocked country in Central Asia with a history of conflict",
+			AL: "Southeastern European country on the Adriatic Sea",
+			DZ: "Largest country in Africa by land area",
+			AD: "Small principality between France and Spain",
+			AO: "Southern African country, formerly a Portuguese colony",
+			AG: "Caribbean island nation with many beaches",
+			AR: "South American country known for tango and beef",
+			AM: "Landlocked country in the Caucasus region",
+			AU: "Country and continent in the Southern Hemisphere",
+			AT: "Central European country, home of Mozart",
+			AZ: "Country in the Caucasus region with a coastline on the Caspian Sea",
+			BS: "Island nation in the Caribbean",
+			BH: "Small island country in the Persian Gulf",
+			BD: "South Asian country with a large population",
+			BB: "Caribbean island nation and birthplace of Rihanna",
+			BY: "Eastern European landlocked country",
+			BE: "Western European country known for chocolate and waffles",
+			BZ: "Central American country with a barrier reef",
+			BJ: "West African country, formerly known as Dahomey",
+			BT: "Himalayan kingdom known for measuring Gross National Happiness",
+			BO: "Landlocked South American country with Andean highlands",
+			BA: "Balkan country with a short coastline on the Adriatic",
+			BW: "Southern African country with the Kalahari Desert",
+			BR: "Largest country in South America",
+			BN: "Small Southeast Asian country on the island of Borneo",
+			BG: "Balkan country on the Black Sea",
+			BF: "West African landlocked country",
+			BI: "Small, densely populated country in East Africa",
+			CV: "Island nation off the west coast of Africa",
+			KH: "Southeast Asian country home to Angkor Wat",
+			CM: "Central African country on the Gulf of Guinea",
+			CA: "Second largest country in the world by land area",
+			CF: "Landlocked country in the heart of Africa",
+			TD: "Large landlocked country in north-central Africa",
+			CL: "Long, narrow South American country along the Pacific",
+			CN: "Most populous country in the world",
+			CO: "South American country with both Pacific and Caribbean coastlines",
+			KM: "Island nation off the east coast of Africa",
+			CD: "Large country in Central Africa, formerly Zaire",
+			CG: "Central African country on the Equator",
+			CR: "Central American country known for eco-tourism",
+			HR: "Southeastern European country with long Adriatic coastline",
+			CU: "Largest Caribbean island nation",
+			CY: "Island country in the eastern Mediterranean",
+			CZ: "Central European country known for historic castles",
+			DK: "Nordic country consisting of a peninsula and islands",
+			DJ: "Small country on the Horn of Africa",
+			DM: "Small island nation in the eastern Caribbean",
+			DO: "Caribbean country sharing an island with Haiti",
+			TL: "Southeast Asian island nation, one of the world's newest countries",
+			EC: "South American country named for the Equator",
+			EG: "North African country home to the Pyramids",
+			SV: "Smallest Central American country",
+			GQ: "Central African country, only Spanish-speaking nation in Africa",
+			ER: "Horn of Africa country on the Red Sea",
+			EE: "Baltic country, one of the most digitally advanced nations",
+			SZ: "Small landlocked kingdom in Southern Africa",
+			ET: "Horn of Africa country with ancient Christian history",
+			FJ: "Pacific island nation with over 300 islands",
+			FI: "Nordic country known for saunas and lakes",
+			FR: "Western European country known for cuisine and culture",
+			GA: "Central African country on the Equator",
+			GM: "Small West African country surrounded by Senegal",
+			GE: "Caucasus country at the intersection of Europe and Asia",
+			DE: "Central European country with the largest economy in Europe",
+			GH: "West African country, first to gain independence in sub-Saharan Africa",
+			GR: "Southern European country with ancient history",
+			GD: "Small Caribbean island known as the 'Spice Isle'",
+			GT: "Central American country with Mayan heritage",
+			GN: "West African country formerly known as French Guinea",
+			GW: "Small West African country, formerly Portuguese Guinea",
+			GY: "Only English-speaking country in South America",
+			HT: "Caribbean country sharing an island with Dominican Republic",
+			HN: "Central American country with Caribbean and Pacific coastlines",
+			HU: "Central European landlocked country",
+			IS: "Nordic island country with volcanic landscape",
+			IN: "South Asian country with the second-largest population",
+			ID: "Largest island country in the world",
+			IR: "Middle Eastern country formerly known as Persia",
+			IQ: "Middle Eastern country between the Tigris and Euphrates rivers",
+			IE: "Island nation in northwestern Europe",
+			IL: "Middle Eastern country on the Mediterranean",
+			IT: "Southern European country shaped like a boot",
+			CI: "West African country known for cocoa production",
+			JM: "Caribbean island nation, birthplace of reggae music",
+			JP: "East Asian island nation known for technology and traditions",
+			JO: "Middle Eastern kingdom bordering the Dead Sea",
+			KZ: "Central Asian country, ninth-largest in the world by area",
+			KE: "East African country known for wildlife and marathoners",
+			KI: "Pacific island nation straddling the equator",
+			KP: "East Asian country on the northern part of the Korean Peninsula",
+			KR: "East Asian country on the southern part of the Korean Peninsula",
+			KW: "Small oil-rich country in the Persian Gulf",
+			KG: "Central Asian mountainous country",
+			LA: "Landlocked Southeast Asian country",
+			LV: "Baltic country on the shores of the Baltic Sea",
+			LB: "Middle Eastern country on the Mediterranean",
+			LS: "Mountain kingdom completely surrounded by South Africa",
+			LR: "West African country founded by freed American slaves",
+			LY: "North African country on the Mediterranean",
+			LI: "Tiny principality between Switzerland and Austria",
+			LT: "Baltic country, southernmost of the Baltic states",
+			LU: "Small Western European country surrounded by France, Germany, and Belgium",
+			MG: "Large island nation off the southeast coast of Africa",
+			MW: "Landlocked country in southeastern Africa",
+			MY: "Southeast Asian country with peninsular and island territories",
+			MV: "Island nation in the Indian Ocean, lowest country in the world",
+			ML: "Large landlocked country in West Africa",
+			MT: "Small Mediterranean island nation",
+			MH: "Pacific island nation spread across 29 atolls",
+			MR: "Northwest African country with Atlantic coastline",
+			MU: "Island nation in the Indian Ocean east of Madagascar",
+			MX: "North American country south of the United States",
+			FM: "Island nation in the western Pacific",
+			MD: "Eastern European country between Romania and Ukraine",
+			MC: "Second-smallest country in the world, on the French Riviera",
+			MN: "Large landlocked country between Russia and China",
+			ME: "Small Balkan country on the Adriatic Sea",
+			MA: "North African country with both Atlantic and Mediterranean coastlines",
+			MZ: "Southeast African country with a long Indian Ocean coastline",
+			MM: "Southeast Asian country formerly known as Burma",
+			NA: "Southern African country, formerly called South West Africa",
+			NR: "Tiny island nation in the South Pacific",
+			NP: "Himalayan country home to Mount Everest",
+			NL: "Western European country known for tulips and windmills",
+			NZ: "Island nation in the southwestern Pacific",
+			NI: "Central American country with the largest freshwater lake in Central America",
+			NE: "Landlocked West African country",
+			NG: "Most populous African country",
+			MK: "Landlocked Balkan country",
+			NO: "Nordic country known for fjords",
+			OM: "Middle Eastern country on the Arabian Peninsula",
+			PK: "South Asian country bordering India and China",
+			PW: "Island nation in the western Pacific",
+			PS: "Middle Eastern territory in the West Bank and Gaza Strip",
+			PA: "Central American country with the famous canal",
+			PG: "Oceanian country occupying the eastern half of New Guinea",
+			PY: "Landlocked South American country",
+			PE: "South American country home to Machu Picchu",
+			PH: "Southeast Asian archipelago with over 7,000 islands",
+			PL: "Central European country on the Baltic Sea",
+			PT: "Southwestern European country on the Iberian Peninsula",
+			QA: "Small peninsula country in the Persian Gulf",
+			RO: "Southeastern European country, home to Transylvania",
+			RU: "Largest country in the world, spanning Eastern Europe and Northern Asia",
+			RW: "Small landlocked country in East Africa",
+			KN: "Two-island nation in the eastern Caribbean",
+			LC: "Island nation in the eastern Caribbean",
+			VC: "Island nation in the eastern Caribbean",
+			WS: "Pacific island nation formerly known as Western Samoa",
+			SM: "Microstate completely surrounded by Italy",
+			ST: "Island nation in the Gulf of Guinea",
+			SA: "Largest country on the Arabian Peninsula",
+			SN: "West African country named after the Senegal River",
+			RS: "Landlocked Balkan country, formerly part of Yugoslavia",
+			SC: "Island nation in the Indian Ocean northeast of Madagascar",
+			SL: "West African country on the Atlantic coast",
+			SG: "City-state in Southeast Asia",
+			SK: "Central European landlocked country",
+			SI: "Small Central European country in the Julian Alps",
+			SB: "Pacific island nation consisting of hundreds of islands",
+			SO: "Horn of Africa country with the longest coastline in mainland Africa",
+			ZA: "Southern African country with 11 official languages",
+			SS: "East-Central African country, the world's newest nation",
+			ES: "Southwestern European country on the Iberian Peninsula",
+			LK: "Island nation south of India",
+			SD: "North African country on the Nile",
+			SR: "Small country on the northern coast of South America",
+			SE: "Nordic country in Northern Europe",
+			CH: "Central European alpine country",
+			SY: "Middle Eastern country on the eastern Mediterranean",
+			TJ: "Central Asian mountainous country",
+			TZ: "East African country home to Mount Kilimanjaro",
+			TH: "Southeast Asian country formerly known as Siam",
+			TG: "Narrow West African country",
+			TO: "Polynesian kingdom in the South Pacific",
+			TT: "Twin-island country in the southern Caribbean",
+			TN: "North African country on the Mediterranean",
+			TR: "Country spanning Southeastern Europe and Western Asia",
+			TM: "Central Asian country largely covered by the Karakum Desert",
+			TV: "Polynesian island nation consisting of nine coral atolls",
+			UG: "East African landlocked country",
+			UA: "Eastern European country, the second-largest in Europe",
+			AE: "Federation of seven emirates on the Arabian Peninsula",
+			GB: "Island nation in northwestern Europe",
+			US: "North American country consisting of 50 states",
+			UY: "Small South American country between Argentina and Brazil",
+			UZ: "Central Asian doubly landlocked country",
+			VU: "Pacific island nation consisting of about 80 islands",
+			VA: "World's smallest sovereign state, surrounded by Rome",
+			VE: "South American country with the world's largest oil reserves",
+			VN: "Southeast Asian country on the South China Sea",
+			YE: "Middle Eastern country at the southern end of the Arabian Peninsula",
+			ZM: "Landlocked country in Southern Africa",
+			ZW: "Landlocked country in Southern Africa with Victoria Falls",
+		}),
+		[]
+	);
+
 	const countriesArr = useMemo(
 		() => ({
 			afghanistan: "AF",
@@ -416,6 +618,7 @@ export default function GuessTheFlag() {
 	const [isStarted, setIsStarted] = useState(false);
 	const [isOn, setIsOn] = useState(false);
 	const [countdown, setCountdown] = useState(5);
+	const [showHint, setShowHint] = useState(false);
 
 	useEffect(() => {
 		if (isStarted && countdown > 0) {
@@ -457,6 +660,33 @@ export default function GuessTheFlag() {
 
 			return () => clearInterval(timer);
 		} else if (timeLeft === 0) {
+			// Save the score to localStorage
+			const newRecord = {
+				id: Date.now(),
+				score: isCorrect,
+				date: new Date().toISOString().split("T")[0],
+				time: 120, // Original time limit
+				gameMode: "Guess the Flag",
+			};
+
+			// Get existing records
+			const existingRecordsJSON = localStorage.getItem("guessTheFlagRecords");
+			const existingRecords = existingRecordsJSON
+				? JSON.parse(existingRecordsJSON)
+				: [];
+
+			// Add new record and sort by score (highest first)
+			const updatedRecords = [...existingRecords, newRecord].sort(
+				(a, b) => b.score - a.score
+			);
+
+			// Keep only top 10 records
+			const topRecords = updatedRecords.slice(0, 10);
+
+			// Save back to localStorage
+			localStorage.setItem("guessTheFlagRecords", JSON.stringify(topRecords));
+
+			// Reset the game
 			setIsStarted(false);
 			setIsOn(false);
 			setTimeLeft(120);
@@ -464,8 +694,9 @@ export default function GuessTheFlag() {
 			setIsWrong(0);
 			setInputValue("");
 			setGuessedCountries([]);
+			setShowHint(false);
 		}
-	}, [isOn, timeLeft]);
+	}, [isOn, timeLeft, isCorrect]);
 
 	const normalizeCountryName = useCallback((name) => {
 		return name.toLowerCase();
@@ -515,6 +746,7 @@ export default function GuessTheFlag() {
 			setInputValue("");
 			setGuessedCountries((prev) => [...prev, randomCountry]);
 			setRandomCountry(getRandomCountry());
+			setShowHint(false); // Reset hint for next country
 			return;
 		}
 
@@ -526,8 +758,18 @@ export default function GuessTheFlag() {
 				setIsWrong((prev) => prev + 1);
 				setInputValue("");
 				setRandomCountry(getRandomCountry());
+				setShowHint(false); // Reset hint for next country
 			}
 		}
+	};
+
+	// Handle skip button click
+	const handleSkip = () => {
+		setIsWrong((prev) => prev + 1);
+		setInputValue("");
+		setGuessedCountries((prev) => [...prev, randomCountry]);
+		setRandomCountry(getRandomCountry());
+		setShowHint(false); // Reset hint for next country
 	};
 
 	return (
@@ -589,6 +831,12 @@ export default function GuessTheFlag() {
 								/>
 							</div>
 
+							{showHint && (
+								<div className="text-lg italic mb-4 bg-[var(--foreground-muted)] bg-opacity-20 p-3 rounded-lg">
+									Hint: {countryHints[randomCountry]}
+								</div>
+							)}
+
 							<form
 								onSubmit={(e) => e.preventDefault()}
 								className="w-full mt-4"
@@ -604,6 +852,22 @@ export default function GuessTheFlag() {
 									autoFocus
 								/>
 							</form>
+
+							<div className="flex gap-4 justify-center mt-6">
+								<button
+									onClick={() => setShowHint(true)}
+									className="py-2 px-4 border-2 border-[var(--main)] text-[var(--main)] rounded-lg hover:bg-[var(--main)] hover:text-[#eeeeee] transition-colors duration-300"
+									disabled={showHint}
+								>
+									Show Hint
+								</button>
+								<button
+									onClick={handleSkip}
+									className="py-2 px-4 border-2 border-[var(--error)] text-[var(--error)] rounded-lg hover:bg-[var(--error)] hover:text-[#eeeeee] transition-colors duration-300"
+								>
+									Skip
+								</button>
+							</div>
 						</div>
 					)}
 				</div>
