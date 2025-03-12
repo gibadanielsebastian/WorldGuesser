@@ -8,8 +8,8 @@ const itim = Itim({
 
 export default function GameModes() {
 	return (
-		<div className="flex md:h-[calc(100vh-10rem)] justify-center items-center overflow-hidden">
-			<div className="flex flex-col mt-32 mb-16 md:mt-0 md:mb-0 md:flex-row md:w-3/4 gap-16 place-items-center">
+		<div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] py-8 px-4">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
 				{["Guess the Flag", "Name the Country", "Find the Country"].map(
 					(text) => {
 						const content = {
@@ -28,13 +28,20 @@ export default function GameModes() {
 						}[text];
 
 						return (
-							<div key={text} className="flex flex-col w-3/4 gap-4">
-								<div className="border-2 rounded-lg p-4">{content}</div>
+							<div key={text} className="flex flex-col h-full">
+								<div className="border-2 rounded-lg p-6 flex-grow">
+									<h2
+										className={`${itim.className} text-2xl mb-4 text-[var(--main)]`}
+									>
+										{text}
+									</h2>
+									<p>{content}</p>
+								</div>
 								<Link
 									href={links}
-									className={`p-4 bg-[var(--main)] text-xl ${itim.className} text-center`}
+									className={`p-4 mt-4 bg-[var(--main)] text-xl ${itim.className} text-center rounded-lg transition-all duration-300 hover:opacity-90`}
 								>
-									{text}
+									Play {text}
 								</Link>
 							</div>
 						);

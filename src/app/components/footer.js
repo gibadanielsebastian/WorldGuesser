@@ -1,7 +1,9 @@
 export default function Footer() {
 	return (
-		<footer className="relative flex justify-center items-center h-8 bottom-0">
-			<p className="text-[#777777]">&copy; GibySnack </p>
+		<footer className="relative flex justify-center items-center h-12 mt-auto ">
+			<p className="text-[var(--foreground)] opacity-70">
+				&copy; {new Date().getFullYear()} GibySnack{" "}
+			</p>
 		</footer>
 	);
 }

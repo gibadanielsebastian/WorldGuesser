@@ -414,9 +414,7 @@ export default function GuessTheFlag() {
 	);
 
 	const [isStarted, setIsStarted] = useState(false);
-
 	const [isOn, setIsOn] = useState(false);
-
 	const [countdown, setCountdown] = useState(5);
 
 	useEffect(() => {
@@ -433,11 +431,9 @@ export default function GuessTheFlag() {
 	}, [isStarted, countdown]);
 
 	const [inputValue, setInputValue] = useState("");
-
 	const [randomCountry, setRandomCountry] = useState(
 		countriesCodesArr[Math.floor(Math.random() * countriesCodesArr.length)]
 	);
-
 	const [guessedCountries, setGuessedCountries] = useState([]);
 
 	const getRandomCountry = useCallback(() => {
@@ -451,7 +447,6 @@ export default function GuessTheFlag() {
 
 	const [isCorrect, setIsCorrect] = useState(0);
 	const [isWrong, setIsWrong] = useState(0);
-
 	const [timeLeft, setTimeLeft] = useState(120);
 
 	useEffect(() => {
@@ -472,84 +467,110 @@ export default function GuessTheFlag() {
 		}
 	}, [isOn, timeLeft]);
 
+	const normalizeCountryName = useCallback((name) => {
+		return name.toLowerCase();
+	}, []);
+
 	const handleChange = (e) => {
 		const value = e.target.value;
-		const lowerValue = value.toLowerCase();
+		const lowerValue = normalizeCountryName(value);
 		setInputValue(lowerValue);
 
 		// Check if the input value matches the flag
-		if (
-			countriesArr[lowerValue] === randomCountry ||
-			(randomCountry === "NG" && lowerValue === "nigeria")
-		) {
-			setIsCorrect(isCorrect + 1);
-			setTimeLeft(timeLeft + 5);
+		const correctAnswer = Object.entries(countriesArr).find(
+			([_, code]) => code === randomCountry
+		)?.[0];
+
+		if (correctAnswer && normalizeCountryName(correctAnswer) === lowerValue) {
+			setIsCorrect((prev) => prev + 1);
+			setTimeLeft((prev) => prev + 5);
 			setInputValue("");
-			guessedCountries.push(randomCountry);
+			setGuessedCountries((prev) => [...prev, randomCountry]);
 			setRandomCountry(getRandomCountry());
 		} else if (
 			countriesArr[lowerValue] &&
-			!(randomCountry === "NG" && lowerValue.startsWith("niger"))
+			countriesArr[lowerValue] !== randomCountry
 		) {
-			setIsWrong(isWrong + 1);
+			setIsWrong((prev) => prev + 1);
 			setInputValue("");
 			setRandomCountry(getRandomCountry());
 		}
 	};
 
 	return (
-		<div className="flex flex-col justify-center items-center h-[calc(100vh-10rem)]">
+		<div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] py-8 px-4">
 			{!isStarted && (
-				<div className="flex flex-col items-center gap-y-16 w-3/4 md:w-1/2 text-center">
-					<h1 className={`text-4xl ${itim.className}`}>Guess the Flag</h1>
-					<p>
+				<div className="card max-w-lg mx-auto text-center">
+					<h1 className={`text-4xl ${itim.className} mb-6`}>Guess the Flag</h1>
+					<p className="mb-8">
 						You will be shown a flag and you have to guess the country it
 						belongs to by writing the name in the box. <br /> Try to be as fast
 						as possible to beat your highest score!
 					</p>
-					<div className="flex space-x-4">
+					<div className="flex flex-col sm:flex-row justify-center gap-4">
 						<button
-							onClick={() => setIsStarted(!isStarted)}
-							className="p-4 px-8 bg-[var(--main)] text-xl text-center"
+							onClick={() => setIsStarted(true)}
+							className="btn-primary text-xl"
 						>
-							Start
+							Start Game
 						</button>
 						<Link
 							href={"/gamemodes"}
-							className="p-4 px-8 bg-[var(--main)] text-xl text-center"
+							className="py-3 px-6 border-2 border-[var(--main)] text-[var(--main)] rounded-lg hover:bg-[var(--main)] hover:text-[#eeeeee] transition-colors duration-300 text-xl text-center"
 						>
-							Back
+							Back to Games
 						</Link>
 					</div>
 				</div>
 			)}
 			{isStarted && (
-				<div className="flex flex-col items-center gap-y-8 w-3/4 md:w-1/2 text-center">
-					<h1 className={`text-4xl ${itim.className}`}>Guess the Flag</h1>
-					{!isOn && <h2>Starting in: {countdown}</h2>}
-					{isOn && (
+				<div className="card max-w-lg mx-auto text-center">
+					<h1 className={`text-4xl ${itim.className} mb-6`}>Guess the Flag</h1>
+
+					{!isOn ? (
+						<div className="text-3xl font-bold mb-4">
+							Starting in: {countdown}
+						</div>
+					) : (
 						<div className="flex flex-col items-center justify-center gap-y-8">
-							<h2 className="text-xl text-[#eeeeee]">Time Left: {timeLeft}</h2>
-							<div>
+							<div className="flex justify-between w-full mb-4">
+								<div className="text-xl font-semibold">
+									Time:{" "}
+									<span className={timeLeft < 30 ? "text-[var(--error)]" : ""}>
+										{timeLeft}s
+									</span>
+								</div>
+								<div className="text-xl">
+									<span className="text-[var(--success)]">✓ {isCorrect}</span> /
+									<span className="text-[var(--error)]">✗ {isWrong}</span>
+								</div>
+							</div>
+
+							<div className="border-4 rounded-lg border-[var(--foreground-muted)] overflow-hidden">
 								<Image
 									src={`/4x3/${randomCountry}.svg`}
 									width={300}
 									height={200}
-									alt={`${randomCountry}`}
-								></Image>
+									alt="Country flag"
+									className="w-full"
+								/>
 							</div>
-							<div>
-								<span className="text-green-400">Correct: {isCorrect}</span> |{" "}
-								<span className="text-red-500">Wrong: {isWrong}</span>
-							</div>
-							<input
-								className="bg-[#222630] px-4 py-3 outline-none w-[280px] text-white rounded-lg border-2 transition-colors duration-100 border-solid focus:border-[#596A95] border-[#2B3040]"
-								name="text"
-								placeholder="Enter the Country"
-								type="text"
-								value={inputValue}
-								onChange={handleChange}
-							/>
+
+							<form
+								onSubmit={(e) => e.preventDefault()}
+								className="w-full mt-4"
+							>
+								<input
+									className="w-full bg-[var(--background)] px-4 py-3 outline-none text-[var(--foreground)] rounded-lg border-2 transition-colors duration-300 border-solid focus:border-[var(--main)] border-[var(--foreground-muted)]"
+									name="text"
+									placeholder="Enter country name..."
+									type="text"
+									value={inputValue}
+									onChange={handleChange}
+									autoComplete="off"
+									autoFocus
+								/>
+							</form>
 						</div>
 					)}
 				</div>

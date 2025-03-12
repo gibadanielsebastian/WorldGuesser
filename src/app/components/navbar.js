@@ -21,36 +21,23 @@ const itim = Itim({
 const NavLinks = ({ setIsMenuOpen, isMenuOpen }) => {
 	const currentPage = usePathname();
 	const router = useRouter();
+
+	const handleNavigation = (path) => {
+		if (setIsMenuOpen) setIsMenuOpen(false);
+		router.push(path);
+	};
+
 	return (
 		<>
-			{currentPage === "/" ? (
-				<button
-					type="button"
-					onClick={() => {
-						setIsMenuOpen && setIsMenuOpen(!isMenuOpen);
-						router.push("/gamemodes");
-					}}
-				>
-					Game Modes
-				</button>
-			) : (
-				<button
-					type="button"
-					onClick={() => {
-						setIsMenuOpen && setIsMenuOpen(!isMenuOpen);
-						router.push("/");
-					}}
-				>
-					Home
-				</button>
-			)}
 			<button
 				type="button"
-				onClick={() => {
-					setIsMenuOpen && setIsMenuOpen(!isMenuOpen);
-					router.push("/");
-				}}
+				onClick={() =>
+					handleNavigation(currentPage === "/" ? "/gamemodes" : "/")
+				}
 			>
+				{currentPage === "/" ? "Game Modes" : "Home"}
+			</button>
+			<button type="button" onClick={() => handleNavigation("/records")}>
 				Records
 			</button>
 		</>
