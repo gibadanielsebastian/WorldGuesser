@@ -129,10 +129,6 @@ The application is fully responsive and works on:
 - More detailed country information
 - Support for different languages
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## 🙏 Acknowledgements
 
 - Flag images from [Flagpedia](https://flagpedia.net/)
