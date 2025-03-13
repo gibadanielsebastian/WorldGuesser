@@ -16,7 +16,7 @@ export default function HowToPlay() {
 			steps: [
 				"A random country flag will be displayed on the screen",
 				"Type the name of the country in the input box",
-				"If you're correct, you'll get a point and 5 seconds bonus time",
+				"If you're correct, you'll get a point and bonus time (in bonus mode)",
 				"If you're stuck, you can view a hint about the country",
 				"You can skip the current flag, but you'll lose a point",
 			],
@@ -34,7 +34,7 @@ export default function HowToPlay() {
 			steps: [
 				"A random country outline will be displayed on the screen",
 				"Type the name of the country in the input box",
-				"If you're correct, you'll get a point and 5 seconds bonus time",
+				"If you're correct, you'll get a point and bonus time (in bonus mode)",
 				"If you're stuck, you can view a hint about the country",
 				"You can skip the current country, but you'll lose a point",
 			],
@@ -52,7 +52,7 @@ export default function HowToPlay() {
 			steps: [
 				"A random country name will be shown at the top",
 				"Find and click on that country on the world map",
-				"If you're correct, you'll get a point and 5 seconds bonus time",
+				"If you're correct, you'll get a point and bonus time (in bonus mode)",
 				"If you're wrong, the correct country will be highlighted",
 				"The game automatically moves to the next country after your answer",
 			],
@@ -61,6 +61,42 @@ export default function HowToPlay() {
 				"Pay attention to borders and coastlines",
 				"Some smaller countries might be harder to spot",
 				"Practice remembering the general location of countries by region",
+			],
+		},
+	];
+
+	const timerModes = [
+		{
+			title: "Countdown with Bonus",
+			description:
+				"Start with a set amount of time that counts down. Each correct answer gives you bonus time.",
+			tips: [
+				"Try to balance speed with accuracy",
+				"Quick answers can help extend your playing time significantly",
+				"The game ends when time runs out",
+				"This mode is great for pushing your score higher",
+			],
+		},
+		{
+			title: "Fixed Countdown",
+			description:
+				"Start with a set amount of time that counts down. No bonus time for correct answers.",
+			tips: [
+				"Focus on accuracy since you can't gain extra time",
+				"Plan your time wisely",
+				"The game ends when time runs out",
+				"This mode creates a consistent challenge each time",
+			],
+		},
+		{
+			title: "Stopwatch",
+			description:
+				"The timer counts up from zero. See how quickly you can answer a set number of questions.",
+			tips: [
+				"Press the Stop button when you're done or want to end the game",
+				"In this mode, a lower time is better",
+				"Focus on both speed and accuracy",
+				"This mode is great for speedrunning challenges",
 			],
 		},
 	];
@@ -77,10 +113,10 @@ export default function HowToPlay() {
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 						<div className="bg-[var(--foreground-muted)] bg-opacity-10 p-4 rounded-lg flex flex-col items-center text-center">
 							<div className="text-3xl mb-2">⏱️</div>
-							<h3 className="font-bold mb-2">Time-Based Challenge</h3>
+							<h3 className="font-bold mb-2">Multiple Timer Modes</h3>
 							<p>
-								Each game lasts 120 seconds. Answer correctly to earn bonus
-								time!
+								Choose from Countdown with Bonus, Fixed Countdown, or Stopwatch
+								modes!
 							</p>
 						</div>
 						<div className="bg-[var(--foreground-muted)] bg-opacity-10 p-4 rounded-lg flex flex-col items-center text-center">
@@ -99,10 +135,37 @@ export default function HowToPlay() {
 					</div>
 					<p>
 						World Guesser offers three exciting game modes to test your
-						geography knowledge. Each game starts with a 120-second countdown,
-						and you can earn bonus time by answering correctly. Your highest
-						scores are saved automatically!
+						geography knowledge. Each game has three difficulty levels and three
+						timer modes. Your highest scores are saved automatically!
 					</p>
+				</div>
+
+				{/* Timer Modes Section */}
+				<div className="mb-8 border-t-2 pt-6">
+					<h2 className={`text-2xl ${itim.className} mb-4`}>Timer Modes</h2>
+					<p className="mb-4">
+						World Guesser offers three different timer modes to customize your
+						gaming experience:
+					</p>
+
+					{timerModes.map((mode, index) => (
+						<div
+							key={index}
+							className="mb-6 bg-[var(--foreground-muted)] bg-opacity-10 p-4 rounded-lg"
+						>
+							<h3 className="font-bold mb-2 text-[var(--main)]">
+								{mode.title}
+							</h3>
+							<p className="mb-2">{mode.description}</p>
+
+							<h4 className="font-semibold mb-1">Tips:</h4>
+							<ul className="list-disc pl-5 space-y-1">
+								{mode.tips.map((tip, i) => (
+									<li key={i}>{tip}</li>
+								))}
+							</ul>
+						</div>
+					))}
 				</div>
 
 				{gameModesGuides.map((game, index) => (

@@ -12,68 +12,147 @@ const itim = Itim({
 export default function Records() {
 	const [activeTab, setActiveTab] = useState("guessTheFlag");
 	const [activeDifficulty, setActiveDifficulty] = useState("all");
+	const [activeTimerMode, setActiveTimerMode] = useState("all");
 	const [records, setRecords] = useState({
 		guessTheFlag: [],
 		nameTheCountry: [],
 		findTheCountry: [],
 	});
 
+	// Load records on component mount
 	useEffect(() => {
 		// Load records from localStorage if available
 		if (typeof window !== "undefined") {
-			const loadedGuessTheFlag = localStorage.getItem("guessTheFlagRecords");
-			const loadedNameTheCountry = localStorage.getItem(
-				"nameTheCountryRecords"
-			);
-			const loadedFindTheCountry = localStorage.getItem(
-				"findTheCountryRecords"
-			);
+			try {
+				// Load each type of record and handle potential parsing errors
+				const loadGuessTheFlag = () => {
+					const records = localStorage.getItem("guessTheFlagRecords");
+					if (records) {
+						try {
+							// Log for debugging
+							const parsed = JSON.parse(records);
+							console.log("Loaded Guess the Flag records:", parsed);
+							return parsed;
+						} catch (error) {
+							console.error("Error parsing Guess the Flag records:", error);
+							return [];
+						}
+					}
+					return [];
+				};
 
-			setRecords({
-				guessTheFlag: loadedGuessTheFlag
-					? JSON.parse(loadedGuessTheFlag)
-					: generateDemoRecords("Guess the Flag"),
-				nameTheCountry: loadedNameTheCountry
-					? JSON.parse(loadedNameTheCountry)
-					: generateDemoRecords("Name the Country"),
-				findTheCountry: loadedFindTheCountry
-					? JSON.parse(loadedFindTheCountry)
-					: generateDemoRecords("Find the Country"),
-			});
+				const loadNameTheCountry = () => {
+					const records = localStorage.getItem("nameTheCountryRecords");
+					if (records) {
+						try {
+							// Log for debugging
+							const parsed = JSON.parse(records);
+							console.log("Loaded Name the Country records:", parsed);
+							return parsed;
+						} catch (error) {
+							console.error("Error parsing Name the Country records:", error);
+							return [];
+						}
+					}
+					return [];
+				};
+
+				const loadFindTheCountry = () => {
+					const records = localStorage.getItem("findTheCountryRecords");
+					if (records) {
+						try {
+							// Log for debugging
+							const parsed = JSON.parse(records);
+							console.log("Loaded Find the Country records:", parsed);
+							return parsed;
+						} catch (error) {
+							console.error("Error parsing Find the Country records:", error);
+							return [];
+						}
+					}
+					return [];
+				};
+
+				// Set the records
+				setRecords({
+					guessTheFlag:
+						loadGuessTheFlag() || generateDemoRecords("Guess the Flag"),
+					nameTheCountry:
+						loadNameTheCountry() || generateDemoRecords("Name the Country"),
+					findTheCountry:
+						loadFindTheCountry() || generateDemoRecords("Find the Country"),
+				});
+			} catch (error) {
+				console.error("Error loading records:", error);
+				// Fallback to demo records
+				setRecords({
+					guessTheFlag: generateDemoRecords("Guess the Flag"),
+					nameTheCountry: generateDemoRecords("Name the Country"),
+					findTheCountry: generateDemoRecords("Find the Country"),
+				});
+			}
 		}
 	}, []);
 
 	// Generate demo records for display purposes
 	const generateDemoRecords = (gameMode) => {
 		const difficulties = ["easy", "medium", "hard"];
+		const timerModes = ["countdown-bonus", "countdown-fixed", "stopwatch"];
 		const demoRecords = [];
 		for (let i = 0; i < 5; i++) {
+			const selectedTimerMode =
+				timerModes[Math.floor(Math.random() * timerModes.length)];
+			const score = Math.floor(Math.random() * 50) + 10;
+			const time =
+				selectedTimerMode === "stopwatch"
+					? Math.floor(Math.random() * 300) + 60 // 1-5 minutes for stopwatch
+					: Math.floor(Math.random() * 120) + 60; // 1-3 minutes for countdown
+
 			demoRecords.push({
-				id: i,
-				score: Math.floor(Math.random() * 50) + 10,
+				id: Date.now() + i,
+				score: score,
 				date: new Date(
 					Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
 				)
 					.toISOString()
 					.split("T")[0],
-				time: Math.floor(Math.random() * 120) + 1,
+				time: time,
 				gameMode,
 				difficulty:
 					difficulties[Math.floor(Math.random() * difficulties.length)],
+				timerMode: selectedTimerMode,
+				value: selectedTimerMode === "stopwatch" ? time : score, // Value for sorting
 			});
 		}
-		return demoRecords.sort((a, b) => b.score - a.score);
+
+		// Sort records appropriately
+		return demoRecords.sort((a, b) => {
+			// First group by timer mode
+			if (
+				(a.timerMode || "countdown-bonus") !==
+				(b.timerMode || "countdown-bonus")
+			) {
+				return (a.timerMode || "countdown-bonus") === "stopwatch" ? -1 : 1; // Stopwatch records first
+			}
+
+			// Then sort within each group
+			if ((a.timerMode || "countdown-bonus") === "stopwatch") {
+				return a.time - b.time; // For stopwatch, lower time is better
+			}
+			return b.score - a.score; // For countdown, higher score is better
+		});
 	};
 
-	// Get records for the active tab and filter by difficulty if needed
+	// Get records for the active tab and filter by difficulty and timer mode
 	const getActiveRecords = () => {
 		const recordMap = {
-			guessTheFlag: records.guessTheFlag,
-			nameTheCountry: records.nameTheCountry,
-			findTheCountry: records.findTheCountry,
+			guessTheFlag: records.guessTheFlag || [],
+			nameTheCountry: records.nameTheCountry || [],
+			findTheCountry: records.findTheCountry || [],
 		};
 
 		let filteredRecords = recordMap[activeTab] || [];
+		console.log("Raw active records:", filteredRecords);
 
 		// Filter by difficulty if not "all"
 		if (activeDifficulty !== "all") {
@@ -82,6 +161,16 @@ export default function Records() {
 			);
 		}
 
+		// Filter by timer mode if not "all"
+		if (activeTimerMode !== "all") {
+			filteredRecords = filteredRecords.filter((record) => {
+				// Handle records that might not have timer mode set (backward compatibility)
+				const recordTimerMode = record.timerMode || "countdown-bonus";
+				return recordTimerMode === activeTimerMode;
+			});
+		}
+
+		console.log("Filtered active records:", filteredRecords);
 		return filteredRecords;
 	};
 
@@ -99,6 +188,23 @@ export default function Records() {
 				setRecords({ ...records, findTheCountry: [] });
 			}
 		}
+	};
+
+	// Format time display (for stopwatch mode)
+	const formatTime = (seconds) => {
+		const mins = Math.floor(seconds / 60);
+		const secs = seconds % 60;
+		return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+	};
+
+	// Get timer mode display
+	const getTimerModeDisplay = (mode) => {
+		const timerMode = mode || "countdown-bonus"; // Default to countdown-bonus for backwards compatibility
+		return timerMode === "countdown-bonus"
+			? "Countdown + Bonus"
+			: timerMode === "countdown-fixed"
+			? "Fixed Countdown"
+			: "Stopwatch";
 	};
 
 	return (
@@ -143,7 +249,7 @@ export default function Records() {
 				</div>
 
 				{/* Difficulty Filters */}
-				<div className="flex flex-wrap justify-center mb-6">
+				<div className="flex flex-wrap justify-center mb-4">
 					<button
 						className={`px-3 py-1 text-sm ${
 							activeDifficulty === "all"
@@ -186,6 +292,50 @@ export default function Records() {
 					</button>
 				</div>
 
+				{/* Timer Mode Filters */}
+				<div className="flex flex-wrap justify-center mb-6">
+					<button
+						className={`px-3 py-1 text-sm ${
+							activeTimerMode === "all"
+								? "bg-[var(--main)] text-[#eeeeee]"
+								: "bg-[var(--foreground-muted)] bg-opacity-50 text-[var(--foreground)]"
+						} rounded-l-lg transition-colors duration-300`}
+						onClick={() => setActiveTimerMode("all")}
+					>
+						All Timer Modes
+					</button>
+					<button
+						className={`px-3 py-1 text-sm ${
+							activeTimerMode === "countdown-bonus"
+								? "bg-[var(--main)] text-[#eeeeee]"
+								: "bg-[var(--foreground-muted)] bg-opacity-50 text-[var(--foreground)]"
+						} transition-colors duration-300`}
+						onClick={() => setActiveTimerMode("countdown-bonus")}
+					>
+						Countdown + Bonus
+					</button>
+					<button
+						className={`px-3 py-1 text-sm ${
+							activeTimerMode === "countdown-fixed"
+								? "bg-[var(--main)] text-[#eeeeee]"
+								: "bg-[var(--foreground-muted)] bg-opacity-50 text-[var(--foreground)]"
+						} transition-colors duration-300`}
+						onClick={() => setActiveTimerMode("countdown-fixed")}
+					>
+						Fixed Countdown
+					</button>
+					<button
+						className={`px-3 py-1 text-sm ${
+							activeTimerMode === "stopwatch"
+								? "bg-[var(--main)] text-[#eeeeee]"
+								: "bg-[var(--foreground-muted)] bg-opacity-50 text-[var(--foreground)]"
+						} rounded-r-lg transition-colors duration-300`}
+						onClick={() => setActiveTimerMode("stopwatch")}
+					>
+						Stopwatch
+					</button>
+				</div>
+
 				{/* Records Table */}
 				<div className="overflow-x-auto">
 					<table className="w-full border-collapse">
@@ -193,16 +343,17 @@ export default function Records() {
 							<tr className="bg-[var(--foreground-muted)]">
 								<th className="p-2 text-left">Rank</th>
 								<th className="p-2 text-left">Score</th>
+								<th className="p-2 text-left">Time</th>
 								<th className="p-2 text-left">Date</th>
-								<th className="p-2 text-left">Time (sec)</th>
 								<th className="p-2 text-left">Difficulty</th>
+								<th className="p-2 text-left">Timer Mode</th>
 							</tr>
 						</thead>
 						<tbody>
 							{getActiveRecords().length > 0 ? (
 								getActiveRecords().map((record, index) => (
 									<tr
-										key={index}
+										key={record.id || index}
 										className={
 											index % 2 === 0
 												? "bg-[var(--foreground-muted)] bg-opacity-10"
@@ -211,16 +362,23 @@ export default function Records() {
 									>
 										<td className="p-2">{index + 1}</td>
 										<td className="p-2">{record.score}</td>
+										<td className="p-2">
+											{(record.timerMode || "countdown-bonus") === "stopwatch"
+												? formatTime(record.time)
+												: `${record.time}s`}
+										</td>
 										<td className="p-2">{record.date}</td>
-										<td className="p-2">{record.time}</td>
 										<td className="p-2 capitalize">
 											{record.difficulty || "medium"}
+										</td>
+										<td className="p-2">
+											{getTimerModeDisplay(record.timerMode)}
 										</td>
 									</tr>
 								))
 							) : (
 								<tr>
-									<td colSpan="5" className="p-4 text-center">
+									<td colSpan="6" className="p-4 text-center">
 										No records found. Play some games to set records!
 									</td>
 								</tr>

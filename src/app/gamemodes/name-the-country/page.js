@@ -12,7 +12,7 @@ const itim = Itim({
 });
 
 export default function NameTheCountry() {
-	const { difficulty, soundEnabled } = useSettings();
+	const { difficulty, soundEnabled, timerMode } = useSettings();
 
 	// Base settings for different difficulty levels
 	const difficultySettings = useMemo(
@@ -434,6 +434,7 @@ export default function NameTheCountry() {
 	const [isStarted, setIsStarted] = useState(false);
 	const [isOn, setIsOn] = useState(false);
 	const [countdown, setCountdown] = useState(5);
+	const [gameCompleted, setGameCompleted] = useState(false);
 
 	const [inputValue, setInputValue] = useState("");
 	const [randomCountryIndex, setRandomCountryIndex] = useState(
@@ -447,6 +448,7 @@ export default function NameTheCountry() {
 	const [timeLeft, setTimeLeft] = useState(
 		difficultySettings[difficulty].timeLimit
 	);
+	const [timeElapsed, setTimeElapsed] = useState(0);
 
 	// Play sound effect when enabled
 	const playSound = useCallback(
@@ -480,53 +482,121 @@ export default function NameTheCountry() {
 		}
 	}, [isStarted, countdown]);
 
+	// Function to handle game completion
+	// Function to handle game completion - memoized with useCallback
+	const finishGame = useCallback(() => {
+		setGameCompleted(true);
+		setIsOn(false);
+
+		// Save the score to localStorage
+		const newRecord = {
+			id: Date.now(),
+			score: isCorrect,
+			date: new Date().toISOString().split("T")[0],
+			time:
+				timerMode === "stopwatch"
+					? timeElapsed
+					: difficultySettings[difficulty].timeLimit,
+			gameMode: "Find the Country",
+			difficulty: difficulty,
+			timerMode: timerMode, // Save the timer mode with the record
+			// For stopwatch mode, lower time is better; for countdown modes, higher score is better
+			value: timerMode === "stopwatch" ? timeElapsed : isCorrect,
+		};
+
+		// Get existing records
+		const existingRecordsJSON = localStorage.getItem("findTheCountryRecords");
+		const existingRecords = existingRecordsJSON
+			? JSON.parse(existingRecordsJSON)
+			: [];
+
+		// Add new record and sort differently based on timer mode
+		let updatedRecords;
+		if (timerMode === "stopwatch") {
+			// For stopwatch, sort by value (time) in ascending order (faster times are better)
+			updatedRecords = [...existingRecords, newRecord].sort((a, b) => {
+				// First, check if timer modes are the same
+				if (a.timerMode !== b.timerMode) {
+					return a.timerMode === "stopwatch" ? -1 : 1; // Stopwatch records first
+				}
+				// If both are stopwatch, sort by time (ascending)
+				if (a.timerMode === "stopwatch") {
+					return a.value - b.value;
+				}
+				// If both are countdown, sort by score (descending)
+				return b.value - a.value;
+			});
+		} else {
+			// For countdown modes, sort by score (descending)
+			updatedRecords = [...existingRecords, newRecord].sort((a, b) => {
+				// First, check if timer modes are the same
+				if (a.timerMode !== b.timerMode) {
+					return a.timerMode === "stopwatch" ? -1 : 1; // Stopwatch records first
+				}
+				// If both are stopwatch, sort by time (ascending)
+				if (a.timerMode === "stopwatch") {
+					return a.value - b.value;
+				}
+				// If both are countdown, sort by score (descending)
+				return b.value - a.value;
+			});
+		}
+
+		// Keep only top 10 records
+		const topRecords = updatedRecords.slice(0, 10);
+
+		// Save back to localStorage
+		localStorage.setItem("findTheCountryRecords", JSON.stringify(topRecords));
+	}, [difficulty, difficultySettings, isCorrect, timeElapsed, timerMode]);
+
 	// Game timer
 	useEffect(() => {
-		if (isOn && timeLeft > 0) {
-			const timer = setInterval(() => {
-				setTimeLeft((prevTimeLeft) => prevTimeLeft - 1);
+		if (!isOn || gameCompleted) return;
+
+		// Different timer logic based on timer mode
+		let timer;
+
+		if (timerMode === "stopwatch") {
+			// Stopwatch mode: timer counts up
+			timer = setInterval(() => {
+				setTimeElapsed((prevTime) => prevTime + 1);
 			}, 1000);
-
-			return () => clearInterval(timer);
-		} else if (timeLeft === 0) {
-			// Save the score to localStorage
-			const newRecord = {
-				id: Date.now(),
-				score: isCorrect,
-				date: new Date().toISOString().split("T")[0],
-				time: difficultySettings[difficulty].timeLimit, // Original time limit
-				gameMode: "Name the Country",
-				difficulty: difficulty,
-			};
-
-			// Get existing records
-			const existingRecordsJSON = localStorage.getItem("nameTheCountryRecords");
-			const existingRecords = existingRecordsJSON
-				? JSON.parse(existingRecordsJSON)
-				: [];
-
-			// Add new record and sort by score (highest first)
-			const updatedRecords = [...existingRecords, newRecord].sort(
-				(a, b) => b.score - a.score
-			);
-
-			// Keep only top 10 records
-			const topRecords = updatedRecords.slice(0, 10);
-
-			// Save back to localStorage
-			localStorage.setItem("nameTheCountryRecords", JSON.stringify(topRecords));
-
-			// Reset the game
-			setIsStarted(false);
-			setIsOn(false);
-			setTimeLeft(difficultySettings[difficulty].timeLimit);
-			setIsCorrect(0);
-			setIsWrong(0);
-			setInputValue("");
-			setUsedCountries([]);
-			setShowHint(false);
+		} else {
+			// Countdown modes (both fixed and bonus): timer counts down
+			if (timeLeft > 0) {
+				timer = setInterval(() => {
+					setTimeLeft((prevTimeLeft) => prevTimeLeft - 1);
+				}, 1000);
+			} else {
+				// Game ends when time runs out in countdown modes
+				finishGame();
+			}
 		}
-	}, [isOn, timeLeft, isCorrect, difficulty, difficultySettings]);
+
+		return () => clearInterval(timer);
+	}, [isOn, timeLeft, timerMode, gameCompleted, finishGame]);
+
+	// Handle manual stop for stopwatch mode
+	const handleStopGame = () => {
+		if (timerMode === "stopwatch" && isOn) {
+			finishGame();
+		}
+	};
+
+	// Reset game function
+	const resetGame = () => {
+		setIsStarted(false);
+		setIsOn(false);
+		setGameCompleted(false);
+		setTimeLeft(difficultySettings[difficulty].timeLimit);
+		setTimeElapsed(0);
+		setIsCorrect(0);
+		setIsWrong(0);
+		setInputValue("");
+		setUsedCountries([]);
+		setShowHint(false);
+		setRandomCountryIndex(Math.floor(Math.random() * countriesData.length));
+	};
 
 	const getRandomCountry = useCallback(() => {
 		let newIndex;
@@ -556,12 +626,30 @@ export default function NameTheCountry() {
 		// Check if answer is correct
 		if (correctAnswer === userAnswer) {
 			setIsCorrect((prev) => prev + 1);
-			setTimeLeft((prev) => prev + difficultySettings[difficulty].bonusTime); // Bonus time based on difficulty
+
+			// Only add bonus time in countdown-bonus mode
+			if (timerMode === "countdown-bonus") {
+				setTimeLeft((prev) => prev + difficultySettings[difficulty].bonusTime);
+			}
+
 			playSound("correct");
 			setInputValue("");
 			setUsedCountries((prev) => [...prev, randomCountryIndex]);
-			setRandomCountryIndex(getRandomCountry());
-			setShowHint(false);
+
+			// Check if all countries have been used
+			if (usedCountries.length + 1 >= countriesData.length) {
+				// If in stopwatch mode, finish the game
+				if (timerMode === "stopwatch") {
+					finishGame();
+				}
+				// For countdown modes, we'd run out of countries, so finish
+				else {
+					finishGame();
+				}
+			} else {
+				setRandomCountryIndex(getRandomCountry());
+				setShowHint(false);
+			}
 		}
 	};
 
@@ -570,13 +658,39 @@ export default function NameTheCountry() {
 		playSound("wrong");
 		setInputValue("");
 		setUsedCountries((prev) => [...prev, randomCountryIndex]);
-		setRandomCountryIndex(getRandomCountry());
-		setShowHint(false);
+
+		// Check if all countries have been used
+		if (usedCountries.length + 1 >= countriesData.length) {
+			// If in stopwatch mode, finish the game
+			if (timerMode === "stopwatch") {
+				finishGame();
+			}
+			// For countdown modes, we'd run out of countries, so finish
+			else {
+				finishGame();
+			}
+		} else {
+			setRandomCountryIndex(getRandomCountry());
+			setShowHint(false);
+		}
+	};
+
+	// Get the appropriate time display based on timer mode
+	const getTimeDisplay = () => {
+		if (timerMode === "stopwatch") {
+			// Format stopwatch time
+			const minutes = Math.floor(timeElapsed / 60);
+			const seconds = timeElapsed % 60;
+			return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+		} else {
+			// Return countdown time
+			return `${timeLeft}s`;
+		}
 	};
 
 	return (
 		<div className="flex flex-col justify-center items-center min-h-[calc(100vh-10rem)] py-8 px-4">
-			{!isStarted && (
+			{!isStarted && !gameCompleted && (
 				<div className="card max-w-lg mx-auto text-center">
 					<h1 className={`text-4xl ${itim.className} mb-6`}>
 						Name the Country
@@ -601,8 +715,25 @@ export default function NameTheCountry() {
 								? `${difficultySettings.medium.countriesCount} countries, ${difficultySettings.medium.timeLimit}s time limit, +${difficultySettings.medium.bonusTime}s bonus time`
 								: `${difficultySettings.hard.countriesCount} countries including difficult ones, ${difficultySettings.hard.timeLimit}s time limit, +${difficultySettings.hard.bonusTime}s bonus time`}
 						</p>
+						<p className="text-lg font-medium mt-4 mb-2">
+							Timer Mode:{" "}
+							<span className="text-[var(--main)]">
+								{timerMode === "countdown-bonus"
+									? "Countdown with Bonus"
+									: timerMode === "countdown-fixed"
+									? "Fixed Countdown"
+									: "Stopwatch"}
+							</span>
+						</p>
+						<p className="text-sm">
+							{timerMode === "countdown-bonus"
+								? "Timer counts down. Each correct answer gives bonus time."
+								: timerMode === "countdown-fixed"
+								? "Timer counts down. No bonus time for correct answers."
+								: "Timer counts up. Press stop when you're done."}
+						</p>
 						<p className="text-sm mt-2">
-							Change difficulty in{" "}
+							Change settings in{" "}
 							<Link
 								href="/settings"
 								className="text-[var(--main)] hover:underline"
@@ -627,7 +758,49 @@ export default function NameTheCountry() {
 					</div>
 				</div>
 			)}
-			{isStarted && (
+			{gameCompleted && (
+				<div className="card max-w-lg mx-auto text-center">
+					<h1 className={`text-4xl ${itim.className} mb-6`}>Game Over</h1>
+					<div className="text-2xl mb-6">
+						{timerMode === "stopwatch"
+							? `Your time: ${getTimeDisplay()}`
+							: `Your score: ${isCorrect}`}
+					</div>
+					<div className="flex justify-center mb-4">
+						<div className="bg-[var(--foreground-muted)] bg-opacity-20 p-4 rounded-lg text-left">
+							<p>
+								<strong>Correct answers:</strong> {isCorrect}
+							</p>
+							<p>
+								<strong>Wrong answers:</strong> {isWrong}
+							</p>
+							<p>
+								<strong>Timer mode:</strong>{" "}
+								{timerMode === "countdown-bonus"
+									? "Countdown with Bonus"
+									: timerMode === "countdown-fixed"
+									? "Fixed Countdown"
+									: "Stopwatch"}
+							</p>
+							<p>
+								<strong>Difficulty:</strong> {difficulty}
+							</p>
+						</div>
+					</div>
+					<div className="flex flex-col sm:flex-row justify-center gap-4">
+						<button onClick={resetGame} className="btn-primary text-xl">
+							Play Again
+						</button>
+						<Link
+							href={"/records"}
+							className="py-3 px-6 border-2 border-[var(--main)] text-[var(--main)] rounded-lg hover:bg-[var(--main)] hover:text-[#eeeeee] transition-colors duration-300 text-xl text-center"
+						>
+							View Records
+						</Link>
+					</div>
+				</div>
+			)}
+			{isStarted && !gameCompleted && (
 				<div className="card max-w-lg mx-auto text-center">
 					<h1 className={`text-4xl ${itim.className} mb-6`}>
 						Name the Country
@@ -641,9 +814,15 @@ export default function NameTheCountry() {
 						<div className="flex flex-col items-center justify-center gap-y-8">
 							<div className="flex justify-between w-full mb-4">
 								<div className="text-xl font-semibold">
-									Time:{" "}
-									<span className={timeLeft < 30 ? "text-[var(--error)]" : ""}>
-										{timeLeft}s
+									{timerMode === "stopwatch" ? "Time: " : "Time Left: "}
+									<span
+										className={
+											timerMode !== "stopwatch" && timeLeft < 30
+												? "text-[var(--error)]"
+												: ""
+										}
+									>
+										{getTimeDisplay()}
 									</span>
 								</div>
 								<div className="text-xl">
@@ -651,6 +830,15 @@ export default function NameTheCountry() {
 									<span className="text-[var(--error)]">✗ {isWrong}</span>
 								</div>
 							</div>
+
+							{timerMode === "stopwatch" && (
+								<button
+									onClick={handleStopGame}
+									className="py-2 px-4 bg-[var(--error)] text-white rounded-lg hover:opacity-90 transition-opacity duration-300"
+								>
+									Stop Game
+								</button>
+							)}
 
 							<div className="border-4 rounded-lg border-[var(--foreground-muted)] overflow-hidden p-4">
 								<Image

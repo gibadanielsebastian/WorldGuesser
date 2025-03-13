@@ -18,6 +18,8 @@ export default function Settings() {
 		setDifficulty,
 		soundEnabled,
 		setSoundEnabled,
+		timerMode,
+		setTimerMode,
 	} = useSettings();
 	const [isSaved, setIsSaved] = useState(false);
 
@@ -136,6 +138,50 @@ export default function Settings() {
 										: difficulty === "medium"
 										? "Balanced mix of common and uncommon countries."
 										: "More challenging countries and tougher time limits."}
+								</p>
+							</div>
+
+							{/* Timer Mode Settings */}
+							<div>
+								<label className="block mb-2 font-medium">Timer Mode</label>
+								<div className="flex flex-wrap gap-3">
+									<button
+										onClick={() => setTimerMode("countdown-bonus")}
+										className={`py-2 px-4 rounded-lg transition-colors ${
+											timerMode === "countdown-bonus"
+												? "bg-[var(--main)] text-[#eeeeee]"
+												: "bg-[var(--foreground-muted)] bg-opacity-30"
+										}`}
+									>
+										Countdown with Bonus
+									</button>
+									<button
+										onClick={() => setTimerMode("countdown-fixed")}
+										className={`py-2 px-4 rounded-lg transition-colors ${
+											timerMode === "countdown-fixed"
+												? "bg-[var(--main)] text-[#eeeeee]"
+												: "bg-[var(--foreground-muted)] bg-opacity-30"
+										}`}
+									>
+										Fixed Countdown
+									</button>
+									<button
+										onClick={() => setTimerMode("stopwatch")}
+										className={`py-2 px-4 rounded-lg transition-colors ${
+											timerMode === "stopwatch"
+												? "bg-[var(--main)] text-[#eeeeee]"
+												: "bg-[var(--foreground-muted)] bg-opacity-30"
+										}`}
+									>
+										Stopwatch
+									</button>
+								</div>
+								<p className="text-sm mt-2 text-[var(--foreground-muted)] text-opacity-80">
+									{timerMode === "countdown-bonus"
+										? "Timer counts down. Each correct answer gives bonus time."
+										: timerMode === "countdown-fixed"
+										? "Timer counts down. No bonus time for correct answers."
+										: "Timer counts up. Press stop when you're done."}
 								</p>
 							</div>
 

@@ -13,6 +13,7 @@ export function SettingsProvider({ children }) {
 	const [theme, setTheme] = useState("system");
 	const [difficulty, setDifficulty] = useState("medium");
 	const [soundEnabled, setSoundEnabled] = useState(true);
+	const [timerMode, setTimerMode] = useState("countdown-bonus"); // New setting: "countdown-bonus", "countdown-fixed", "stopwatch"
 
 	// Load settings from localStorage on initial render
 	useEffect(() => {
@@ -27,6 +28,7 @@ export function SettingsProvider({ children }) {
 						? parsedSettings.soundEnabled
 						: true
 				);
+				setTimerMode(parsedSettings.timerMode || "countdown-bonus");
 			}
 		}
 	}, []);
@@ -55,13 +57,14 @@ export function SettingsProvider({ children }) {
 				theme,
 				difficulty,
 				soundEnabled,
+				timerMode,
 			};
 			localStorage.setItem(
 				"worldGuesserSettings",
 				JSON.stringify(currentSettings)
 			);
 		}
-	}, [theme, difficulty, soundEnabled]);
+	}, [theme, difficulty, soundEnabled, timerMode]);
 
 	const value = {
 		theme,
@@ -70,6 +73,8 @@ export function SettingsProvider({ children }) {
 		setDifficulty,
 		soundEnabled,
 		setSoundEnabled,
+		timerMode,
+		setTimerMode,
 	};
 
 	return (
