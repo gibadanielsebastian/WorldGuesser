@@ -1,15 +1,79 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Itim } from "next/font/google";
 import { useSettings } from "../../contexts/SettingsContext";
+import WorldMap from "./WorldMap";
 
 const itim = Itim({
 	subsets: ["latin"],
 	weight: "400",
 });
+
+// Simplified set of countries with ISO-3 codes matching the world-atlas dataset
+const countryData = [
+	{ code: "USA", name: "United States", difficulty: "easy" },
+	{ code: "CHN", name: "China", difficulty: "easy" },
+	{ code: "IND", name: "India", difficulty: "easy" },
+	{ code: "BRA", name: "Brazil", difficulty: "easy" },
+	{ code: "RUS", name: "Russia", difficulty: "easy" },
+	{ code: "JPN", name: "Japan", difficulty: "easy" },
+	{ code: "DEU", name: "Germany", difficulty: "easy" },
+	{ code: "GBR", name: "United Kingdom", difficulty: "easy" },
+	{ code: "FRA", name: "France", difficulty: "easy" },
+	{ code: "ITA", name: "Italy", difficulty: "easy" },
+	{ code: "CAN", name: "Canada", difficulty: "easy" },
+	{ code: "AUS", name: "Australia", difficulty: "easy" },
+	{ code: "ESP", name: "Spain", difficulty: "easy" },
+	{ code: "MEX", name: "Mexico", difficulty: "easy" },
+	{ code: "KOR", name: "South Korea", difficulty: "easy" },
+	{ code: "IDN", name: "Indonesia", difficulty: "easy" },
+	{ code: "TUR", name: "Turkey", difficulty: "easy" },
+	{ code: "SAU", name: "Saudi Arabia", difficulty: "easy" },
+	{ code: "ZAF", name: "South Africa", difficulty: "easy" },
+	{ code: "ARG", name: "Argentina", difficulty: "easy" },
+	{ code: "POL", name: "Poland", difficulty: "medium" },
+	{ code: "UKR", name: "Ukraine", difficulty: "medium" },
+	{ code: "EGY", name: "Egypt", difficulty: "medium" },
+	{ code: "VNM", name: "Vietnam", difficulty: "medium" },
+	{ code: "IRN", name: "Iran", difficulty: "medium" },
+	{ code: "THA", name: "Thailand", difficulty: "medium" },
+	{ code: "PHL", name: "Philippines", difficulty: "medium" },
+	{ code: "MYS", name: "Malaysia", difficulty: "medium" },
+	{ code: "COL", name: "Colombia", difficulty: "medium" },
+	{ code: "NLD", name: "Netherlands", difficulty: "medium" },
+	{ code: "BEL", name: "Belgium", difficulty: "medium" },
+	{ code: "SWE", name: "Sweden", difficulty: "medium" },
+	{ code: "CHE", name: "Switzerland", difficulty: "medium" },
+	{ code: "AUT", name: "Austria", difficulty: "medium" },
+	{ code: "PRT", name: "Portugal", difficulty: "medium" },
+	{ code: "GRC", name: "Greece", difficulty: "medium" },
+	{ code: "CZE", name: "Czech Republic", difficulty: "medium" },
+	{ code: "NOR", name: "Norway", difficulty: "medium" },
+	{ code: "FIN", name: "Finland", difficulty: "medium" },
+	{ code: "DNK", name: "Denmark", difficulty: "medium" },
+	{ code: "BGD", name: "Bangladesh", difficulty: "hard" },
+	{ code: "NGA", name: "Nigeria", difficulty: "hard" },
+	{ code: "ETH", name: "Ethiopia", difficulty: "hard" },
+	{ code: "TZA", name: "Tanzania", difficulty: "hard" },
+	{ code: "MMR", name: "Myanmar", difficulty: "hard" },
+	{ code: "KEN", name: "Kenya", difficulty: "hard" },
+	{ code: "MAR", name: "Morocco", difficulty: "hard" },
+	{ code: "UZB", name: "Uzbekistan", difficulty: "hard" },
+	{ code: "PER", name: "Peru", difficulty: "hard" },
+	{ code: "AGO", name: "Angola", difficulty: "hard" },
+	{ code: "LKA", name: "Sri Lanka", difficulty: "hard" },
+	{ code: "CIV", name: "Ivory Coast", difficulty: "hard" },
+	{ code: "GHA", name: "Ghana", difficulty: "hard" },
+	{ code: "ROU", name: "Romania", difficulty: "hard" },
+	{ code: "CHL", name: "Chile", difficulty: "hard" },
+	{ code: "BWA", name: "Botswana", difficulty: "hard" },
+	{ code: "TUN", name: "Tunisia", difficulty: "hard" },
+	{ code: "BOL", name: "Bolivia", difficulty: "hard" },
+	{ code: "CMR", name: "Cameroon", difficulty: "hard" },
+	{ code: "SRB", name: "Serbia", difficulty: "hard" },
+];
 
 export default function FindTheCountry() {
 	const { difficulty, soundEnabled, timerMode } = useSettings();
@@ -39,114 +103,38 @@ export default function FindTheCountry() {
 		[]
 	);
 
-	// All possible countries organized by difficulty
-	const allCountriesData = useMemo(
-		() => [
-			// Easy countries - most recognizable shapes
-			{ code: "US", name: "United States", difficulty: "easy" },
-			{ code: "CN", name: "China", difficulty: "easy" },
-			{ code: "IN", name: "India", difficulty: "easy" },
-			{ code: "BR", name: "Brazil", difficulty: "easy" },
-			{ code: "RU", name: "Russia", difficulty: "easy" },
-			{ code: "JP", name: "Japan", difficulty: "easy" },
-			{ code: "DE", name: "Germany", difficulty: "easy" },
-			{ code: "GB", name: "United Kingdom", difficulty: "easy" },
-			{ code: "FR", name: "France", difficulty: "easy" },
-			{ code: "IT", name: "Italy", difficulty: "easy" },
-			{ code: "CA", name: "Canada", difficulty: "easy" },
-			{ code: "AU", name: "Australia", difficulty: "easy" },
-			{ code: "ES", name: "Spain", difficulty: "easy" },
-			{ code: "MX", name: "Mexico", difficulty: "easy" },
-			{ code: "KR", name: "South Korea", difficulty: "easy" },
-			{ code: "ID", name: "Indonesia", difficulty: "easy" },
-			{ code: "TR", name: "Turkey", difficulty: "easy" },
-			{ code: "SA", name: "Saudi Arabia", difficulty: "easy" },
-			{ code: "ZA", name: "South Africa", difficulty: "easy" },
-			{ code: "AR", name: "Argentina", difficulty: "easy" },
-
-			// Medium difficulty countries
-			{ code: "PL", name: "Poland", difficulty: "medium" },
-			{ code: "UA", name: "Ukraine", difficulty: "medium" },
-			{ code: "EG", name: "Egypt", difficulty: "medium" },
-			{ code: "VN", name: "Vietnam", difficulty: "medium" },
-			{ code: "IR", name: "Iran", difficulty: "medium" },
-			{ code: "TH", name: "Thailand", difficulty: "medium" },
-			{ code: "PH", name: "Philippines", difficulty: "medium" },
-			{ code: "MY", name: "Malaysia", difficulty: "medium" },
-			{ code: "CO", name: "Colombia", difficulty: "medium" },
-			{ code: "NL", name: "Netherlands", difficulty: "medium" },
-			{ code: "BE", name: "Belgium", difficulty: "medium" },
-			{ code: "SE", name: "Sweden", difficulty: "medium" },
-			{ code: "CH", name: "Switzerland", difficulty: "medium" },
-			{ code: "AT", name: "Austria", difficulty: "medium" },
-			{ code: "PT", name: "Portugal", difficulty: "medium" },
-			{ code: "GR", name: "Greece", difficulty: "medium" },
-			{ code: "CZ", name: "Czech Republic", difficulty: "medium" },
-			{ code: "NO", name: "Norway", difficulty: "medium" },
-			{ code: "FI", name: "Finland", difficulty: "medium" },
-			{ code: "DK", name: "Denmark", difficulty: "medium" },
-
-			// Hard difficulty countries - less distinct shapes or smaller countries
-			{ code: "BD", name: "Bangladesh", difficulty: "hard" },
-			{ code: "NG", name: "Nigeria", difficulty: "hard" },
-			{ code: "ET", name: "Ethiopia", difficulty: "hard" },
-			{ code: "TZ", name: "Tanzania", difficulty: "hard" },
-			{ code: "MM", name: "Myanmar", difficulty: "hard" },
-			{ code: "KE", name: "Kenya", difficulty: "hard" },
-			{ code: "MA", name: "Morocco", difficulty: "hard" },
-			{ code: "UZ", name: "Uzbekistan", difficulty: "hard" },
-			{ code: "PE", name: "Peru", difficulty: "hard" },
-			{ code: "AO", name: "Angola", difficulty: "hard" },
-			{ code: "LK", name: "Sri Lanka", difficulty: "hard" },
-			{ code: "CI", name: "Ivory Coast", difficulty: "hard" },
-			{ code: "GH", name: "Ghana", difficulty: "hard" },
-			{ code: "RO", name: "Romania", difficulty: "hard" },
-			{ code: "CL", name: "Chile", difficulty: "hard" },
-			{ code: "BW", name: "Botswana", difficulty: "hard" },
-			{ code: "TN", name: "Tunisia", difficulty: "hard" },
-			{ code: "BO", name: "Bolivia", difficulty: "hard" },
-			{ code: "CM", name: "Cameroon", difficulty: "hard" },
-			{ code: "RS", name: "Serbia", difficulty: "hard" },
-		],
-		[]
-	);
-
 	// Filter countries based on current difficulty
 	const countriesData = useMemo(() => {
 		let filtered = [];
 
 		// For easy, only include easy countries
 		if (difficulty === "easy") {
-			filtered = allCountriesData.filter(
-				(country) => country.difficulty === "easy"
-			);
+			filtered = countryData.filter((country) => country.difficulty === "easy");
 		}
 		// For medium, include easy and medium
 		else if (difficulty === "medium") {
-			filtered = allCountriesData.filter(
+			filtered = countryData.filter(
 				(country) =>
 					country.difficulty === "easy" || country.difficulty === "medium"
 			);
 		}
 		// For hard, include all difficulties
 		else {
-			filtered = allCountriesData;
+			filtered = countryData;
 		}
 
 		// Shuffle and limit to the count for the current difficulty
 		return filtered
 			.sort(() => Math.random() - 0.5)
 			.slice(0, difficultySettings[difficulty].countriesPerGame);
-	}, [allCountriesData, difficulty, difficultySettings]);
+	}, [difficulty, difficultySettings]);
 
 	const [isStarted, setIsStarted] = useState(false);
 	const [isOn, setIsOn] = useState(false);
 	const [countdown, setCountdown] = useState(5);
 	const [gameCompleted, setGameCompleted] = useState(false);
 
-	const [randomCountryIndex, setRandomCountryIndex] = useState(
-		Math.floor(Math.random() * countriesData.length)
-	);
+	const [randomCountryIndex, setRandomCountryIndex] = useState(0);
 	const [usedCountries, setUsedCountries] = useState([]);
 
 	const [isCorrect, setIsCorrect] = useState(0);
@@ -158,20 +146,33 @@ export default function FindTheCountry() {
 	const [selectedCountry, setSelectedCountry] = useState(null);
 	const [showResult, setShowResult] = useState(false);
 	const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
+	const [zoomLevel, setZoomLevel] = useState(1);
+	const mapRef = useRef(null);
+
+	// Initialize the random country index after countries data is loaded
+	useEffect(() => {
+		if (countriesData && countriesData.length > 0) {
+			setRandomCountryIndex(Math.floor(Math.random() * countriesData.length));
+		}
+	}, [countriesData]);
 
 	// Play sound effect when enabled
 	const playSound = useCallback(
 		(type) => {
 			if (!soundEnabled) return;
 
-			// Create audio elements for sounds
-			const correctSound = new Audio("/sounds/correct.mp3");
-			const wrongSound = new Audio("/sounds/wrong.mp3");
+			try {
+				// Create audio elements for sounds
+				const correctSound = new Audio("/sounds/correct.mp3");
+				const wrongSound = new Audio("/sounds/wrong.mp3");
 
-			if (type === "correct") {
-				correctSound.play();
-			} else if (type === "wrong") {
-				wrongSound.play();
+				if (type === "correct") {
+					correctSound.play().catch((err) => console.log("Sound error:", err));
+				} else if (type === "wrong") {
+					wrongSound.play().catch((err) => console.log("Sound error:", err));
+				}
+			} catch (error) {
+				console.error("Error playing sound:", error);
 			}
 		},
 		[soundEnabled]
@@ -185,9 +186,8 @@ export default function FindTheCountry() {
 			}, 1000);
 
 			return () => clearInterval(timer);
-		} else if (countdown === 0) {
+		} else if (isStarted && countdown === 0) {
 			setIsOn(true);
-			setCountdown(5);
 		}
 	}, [isStarted, countdown]);
 
@@ -196,11 +196,6 @@ export default function FindTheCountry() {
 		// Set game state to completed
 		setGameCompleted(true);
 		setIsOn(false);
-
-		// Log for debugging
-		console.log("Finishing game in mode:", timerMode);
-		console.log("Final score:", isCorrect);
-		console.log("Time elapsed in stopwatch mode:", timeElapsed);
 
 		// Save the score to localStorage
 		const newRecord = {
@@ -218,63 +213,59 @@ export default function FindTheCountry() {
 			value: timerMode === "stopwatch" ? timeElapsed : isCorrect,
 		};
 
-		// Log the record being saved for debugging
-		console.log("Saving record:", newRecord);
+		try {
+			// Get existing records
+			const existingRecordsJSON = localStorage.getItem("findTheCountryRecords");
+			const existingRecords = existingRecordsJSON
+				? JSON.parse(existingRecordsJSON)
+				: [];
 
-		// Get existing records
-		const existingRecordsJSON = localStorage.getItem("findTheCountryRecords");
-		const existingRecords = existingRecordsJSON
-			? JSON.parse(existingRecordsJSON)
-			: [];
+			// Add new record and sort differently based on timer mode
+			let updatedRecords;
+			if (timerMode === "stopwatch") {
+				// For stopwatch, sort by value (time) in ascending order (faster times are better)
+				updatedRecords = [...existingRecords, newRecord].sort((a, b) => {
+					// First, check if timer modes are the same
+					if (
+						(a.timerMode || "countdown-bonus") !==
+						(b.timerMode || "countdown-bonus")
+					) {
+						return (a.timerMode || "countdown-bonus") === "stopwatch" ? -1 : 1; // Stopwatch records first
+					}
+					// If both are stopwatch, sort by time (ascending)
+					if ((a.timerMode || "countdown-bonus") === "stopwatch") {
+						return a.value - b.value;
+					}
+					// If both are countdown, sort by score (descending)
+					return b.value - a.value;
+				});
+			} else {
+				// For countdown modes, sort by score (descending)
+				updatedRecords = [...existingRecords, newRecord].sort((a, b) => {
+					// First, check if timer modes are the same
+					if (
+						(a.timerMode || "countdown-bonus") !==
+						(b.timerMode || "countdown-bonus")
+					) {
+						return (a.timerMode || "countdown-bonus") === "stopwatch" ? -1 : 1; // Stopwatch records first
+					}
+					// If both are stopwatch, sort by time (ascending)
+					if ((a.timerMode || "countdown-bonus") === "stopwatch") {
+						return a.value - b.value;
+					}
+					// If both are countdown, sort by score (descending)
+					return b.value - a.value;
+				});
+			}
 
-		console.log("Existing records:", existingRecords);
+			// Keep only top 10 records
+			const topRecords = updatedRecords.slice(0, 10);
 
-		// Add new record and sort differently based on timer mode
-		let updatedRecords;
-		if (timerMode === "stopwatch") {
-			// For stopwatch, sort by value (time) in ascending order (faster times are better)
-			updatedRecords = [...existingRecords, newRecord].sort((a, b) => {
-				// First, check if timer modes are the same
-				if (
-					(a.timerMode || "countdown-bonus") !==
-					(b.timerMode || "countdown-bonus")
-				) {
-					return (a.timerMode || "countdown-bonus") === "stopwatch" ? -1 : 1; // Stopwatch records first
-				}
-				// If both are stopwatch, sort by time (ascending)
-				if ((a.timerMode || "countdown-bonus") === "stopwatch") {
-					return a.value - b.value;
-				}
-				// If both are countdown, sort by score (descending)
-				return b.value - a.value;
-			});
-		} else {
-			// For countdown modes, sort by score (descending)
-			updatedRecords = [...existingRecords, newRecord].sort((a, b) => {
-				// First, check if timer modes are the same
-				if (
-					(a.timerMode || "countdown-bonus") !==
-					(b.timerMode || "countdown-bonus")
-				) {
-					return (a.timerMode || "countdown-bonus") === "stopwatch" ? -1 : 1; // Stopwatch records first
-				}
-				// If both are stopwatch, sort by time (ascending)
-				if ((a.timerMode || "countdown-bonus") === "stopwatch") {
-					return a.value - b.value;
-				}
-				// If both are countdown, sort by score (descending)
-				return b.value - a.value;
-			});
+			// Save back to localStorage
+			localStorage.setItem("findTheCountryRecords", JSON.stringify(topRecords));
+		} catch (error) {
+			console.error("Error saving records:", error);
 		}
-
-		// Keep only top 10 records
-		const topRecords = updatedRecords.slice(0, 10);
-
-		// Save back to localStorage
-		localStorage.setItem("findTheCountryRecords", JSON.stringify(topRecords));
-
-		// Log records after update for debugging
-		console.log("Updated records:", topRecords);
 	}, [difficulty, difficultySettings, isCorrect, timeElapsed, timerMode]);
 
 	// Game timer
@@ -307,11 +298,6 @@ export default function FindTheCountry() {
 	// Handle manual stop for stopwatch mode
 	const handleStopGame = () => {
 		if (timerMode === "stopwatch" && isOn) {
-			// Log for debugging
-			console.log("Manual stop triggered in stopwatch mode");
-			console.log("Current score:", isCorrect);
-			console.log("Current time elapsed:", timeElapsed);
-
 			finishGame();
 		}
 	};
@@ -328,10 +314,15 @@ export default function FindTheCountry() {
 		setUsedCountries([]);
 		setSelectedCountry(null);
 		setShowResult(false);
-		setRandomCountryIndex(Math.floor(Math.random() * countriesData.length));
+		setZoomLevel(1);
+		if (countriesData.length > 0) {
+			setRandomCountryIndex(Math.floor(Math.random() * countriesData.length));
+		}
 	};
 
 	const getRandomCountry = useCallback(() => {
+		if (countriesData.length === 0) return 0;
+
 		let newIndex;
 		const maxTries = 20; // To prevent infinite loop if all countries are used
 		let tries = 0;
@@ -349,7 +340,8 @@ export default function FindTheCountry() {
 	}, [countriesData, usedCountries]);
 
 	const handleCountryClick = (code) => {
-		if (gameCompleted) return;
+		if (gameCompleted || showResult || !countriesData[randomCountryIndex])
+			return;
 
 		setSelectedCountry(code);
 		const currentCountry = countriesData[randomCountryIndex];
@@ -393,8 +385,6 @@ export default function FindTheCountry() {
 			if (usedCountries.length + 1 >= countriesData.length) {
 				// If in stopwatch mode, finish the game
 				if (timerMode === "stopwatch") {
-					// Log for debugging
-					console.log("All countries used, finishing stopwatch game");
 					finishGame();
 				}
 				// For countdown modes, continue until time runs out
@@ -420,6 +410,48 @@ export default function FindTheCountry() {
 		} else {
 			// Return countdown time
 			return `${timeLeft}s`;
+		}
+	};
+
+	const handleZoomIn = () => {
+		setZoomLevel((prev) => Math.min(prev + 0.2, 3));
+	};
+
+	const handleZoomOut = () => {
+		setZoomLevel((prev) => Math.max(prev - 0.2, 0.5));
+	};
+
+	const handlePan = (direction) => {
+		if (mapRef.current) {
+			const { scrollLeft, scrollTop } = mapRef.current;
+			const scrollAmount = 100;
+
+			switch (direction) {
+				case "up":
+					mapRef.current.scrollTo({
+						top: scrollTop - scrollAmount,
+						behavior: "smooth",
+					});
+					break;
+				case "down":
+					mapRef.current.scrollTo({
+						top: scrollTop + scrollAmount,
+						behavior: "smooth",
+					});
+					break;
+				case "left":
+					mapRef.current.scrollTo({
+						left: scrollLeft - scrollAmount,
+						behavior: "smooth",
+					});
+					break;
+				case "right":
+					mapRef.current.scrollTo({
+						left: scrollLeft + scrollAmount,
+						behavior: "smooth",
+					});
+					break;
+			}
 		}
 	};
 
@@ -540,12 +572,12 @@ export default function FindTheCountry() {
 						Find the Country
 					</h1>
 
-					{!isOn ? (
+					{countdown > 0 && !isOn ? (
 						<div className="text-3xl font-bold mb-4">
 							Starting in: {countdown}
 						</div>
 					) : (
-						<div className="flex flex-col items-center justify-center gap-y-8">
+						<div className="flex flex-col items-center justify-center gap-y-4">
 							<div className="flex justify-between w-full mb-4">
 								<div className="text-xl font-semibold">
 									{timerMode === "stopwatch" ? "Time: " : "Time Left: "}
@@ -575,7 +607,7 @@ export default function FindTheCountry() {
 							)}
 
 							<div className="text-3xl font-bold mb-2">
-								Find: {countriesData[randomCountryIndex].name}
+								Find: {countriesData[randomCountryIndex]?.name}
 							</div>
 
 							{showResult && (
@@ -590,46 +622,163 @@ export default function FindTheCountry() {
 								</div>
 							)}
 
-							<div className="border-4 rounded-lg border-[var(--foreground-muted)] overflow-hidden relative">
-								<Image
-									src="/world-map.svg"
-									width={600}
-									height={400}
-									alt="World Map"
-									className="w-full"
-									useMap="#worldmap"
-								/>
-
-								{/* This would be replaced with a proper clickable map implementation */}
-								<div className="absolute inset-0 flex items-center justify-center bg-[var(--foreground-muted)] bg-opacity-50">
-									<p className="text-center p-4 bg-[var(--background)] rounded-lg">
-										In a full implementation, this would be an interactive map
-										where you could click on countries. <br />
-										<br />
-										For now, let&apos;s simulate with buttons:
-									</p>
+							{/* Map Controls */}
+							<div className="flex justify-center gap-2 mb-2">
+								<button
+									onClick={handleZoomIn}
+									className="p-2 border rounded-lg hover:bg-[var(--foreground-muted)]"
+									title="Zoom In"
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="24"
+										height="24"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									>
+										<circle cx="11" cy="11" r="8"></circle>
+										<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+										<line x1="11" y1="8" x2="11" y2="14"></line>
+										<line x1="8" y1="11" x2="14" y2="11"></line>
+									</svg>
+								</button>
+								<button
+									onClick={handleZoomOut}
+									className="p-2 border rounded-lg hover:bg-[var(--foreground-muted)]"
+									title="Zoom Out"
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										width="24"
+										height="24"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										strokeWidth="2"
+										strokeLinecap="round"
+										strokeLinejoin="round"
+									>
+										<circle cx="11" cy="11" r="8"></circle>
+										<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+										<line x1="8" y1="11" x2="14" y2="11"></line>
+									</svg>
+								</button>
+								<div className="flex flex-col">
+									<button
+										onClick={() => handlePan("up")}
+										className="p-2 border rounded-t-lg hover:bg-[var(--foreground-muted)]"
+										title="Pan Up"
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth="2"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										>
+											<polyline points="18 15 12 9 6 15"></polyline>
+										</svg>
+									</button>
+									<div className="flex">
+										<button
+											onClick={() => handlePan("left")}
+											className="p-2 border border-t-0 rounded-bl-lg hover:bg-[var(--foreground-muted)]"
+											title="Pan Left"
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="24"
+												height="24"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="2"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<polyline points="15 18 9 12 15 6"></polyline>
+											</svg>
+										</button>
+										<button
+											onClick={() => handlePan("right")}
+											className="p-2 border border-t-0 border-l-0 rounded-br-lg hover:bg-[var(--foreground-muted)]"
+											title="Pan Right"
+										>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="24"
+												height="24"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="currentColor"
+												strokeWidth="2"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<polyline points="9 18 15 12 9 6"></polyline>
+											</svg>
+										</button>
+									</div>
+									<button
+										onClick={() => handlePan("down")}
+										className="p-2 border border-t-0 rounded-b-lg hover:bg-[var(--foreground-muted)]"
+										title="Pan Down"
+									>
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="none"
+											stroke="currentColor"
+											strokeWidth="2"
+											strokeLinecap="round"
+											strokeLinejoin="round"
+										>
+											<polyline points="6 9 12 15 18 9"></polyline>
+										</svg>
+									</button>
 								</div>
 							</div>
 
-							<div className="flex flex-wrap gap-2 justify-center mt-4 max-w-2xl">
-								{countriesData.map((country) => (
-									<button
-										key={country.code}
-										onClick={() => handleCountryClick(country.code)}
-										className={`py-1 px-3 border rounded-lg transition-colors duration-300 ${
-											selectedCountry === country.code
-												? showResult && isAnswerCorrect
-													? "bg-[var(--success)] text-white border-[var(--success)]"
-													: showResult && !isAnswerCorrect
-													? "bg-[var(--error)] text-white border-[var(--error)]"
-													: "bg-[var(--main)] text-white border-[var(--main)]"
-												: "border-[var(--foreground-muted)] hover:border-[var(--main)]"
-										}`}
-										disabled={showResult}
-									>
-										{country.name}
-									</button>
-								))}
+							{/* Interactive Map */}
+							<div
+								ref={mapRef}
+								className="border-4 rounded-lg border-[var(--foreground-muted)] overflow-auto relative"
+								style={{
+									maxHeight: "500px",
+									maxWidth: "100%",
+									width: "800px",
+									height: "500px",
+								}}
+							>
+								<div
+									style={{
+										transform: `scale(${zoomLevel})`,
+										transformOrigin: "top left",
+										width: "fit-content",
+									}}
+								>
+									<WorldMap
+										onCountryClick={handleCountryClick}
+										selectedCountry={selectedCountry}
+										targetCountry={countriesData[randomCountryIndex]?.code}
+										showResult={showResult}
+										isAnswerCorrect={isAnswerCorrect}
+									/>
+								</div>
+								<div className="text-xs text-center mt-1 italic">
+									Use the controls above to zoom and pan. Click on the country
+									you want to select.
+								</div>
 							</div>
 						</div>
 					)}
