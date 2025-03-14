@@ -6,6 +6,8 @@ import { SettingsProvider } from "./contexts/SettingsContext";
 export default function RootLayout({ children }) {
 	return (
 		<html lang="en">
+			<title>World Guesser</title>
+			<meta name="description" content="Put your description here."></meta>
 			<body>
 				<SettingsProvider>
 					<Navbar />
