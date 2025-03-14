@@ -11,6 +11,9 @@
 	--error: #e74c3c;
 	--success: #2ecc71;
 	--border-radius: 0.5rem;
+
+	/* Only performance improvement, won't affect styling */
+	content-visibility: auto;
 }
 
 /* Dark theme */
@@ -55,6 +58,7 @@ body {
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
+	transition: background-color 0.3s ease; /* Smooth theme transitions */
 }
 
 h1,

@@ -2,21 +2,66 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Kablammo, Itim } from "next/font/google";
 import { useRouter } from "next/navigation";
 
+// Optimize font loading with subset preload
 const kablammo = Kablammo({
 	subsets: ["latin"],
 	weight: "400",
+	display: "swap", // Add display swap for better performance
+	preload: true,
+	fallback: ["system-ui", "sans-serif"], // Add fallback
 });
 
 const itim = Itim({
 	subsets: ["latin"],
 	weight: "400",
+	display: "swap",
+	preload: true,
+	fallback: ["system-ui", "sans-serif"],
 });
 
-export default function Navbar() {
+// Mobile menu component separated for better code splitting
+const MobileMenu = memo(
+	({ isMenuOpen, navItems, pathname, handleNavigation }) => {
+		if (!isMenuOpen) return null;
+
+		return (
+			<div className="fixed inset-0 bg-[var(--background)] z-40 transform transition-transform duration-300 ease-in-out translate-x-0 md:hidden">
+				<div className="flex flex-col items-center justify-center min-h-screen">
+					<ul
+						className={`flex flex-col items-center gap-8 ${itim.className} text-3xl`}
+					>
+						{navItems.map((item) => (
+							<li key={item.path} className="w-full text-center">
+								<button
+									type="button"
+									className={`relative px-8 py-4 w-full transition-colors ${
+										pathname === item.path
+											? "text-[var(--main)]"
+											: "hover:text-[var(--main)]"
+									}`}
+									onClick={() => handleNavigation(item.path)}
+								>
+									{item.label}
+									{pathname === item.path && (
+										<span className="absolute bottom-0 left-1/4 w-1/2 h-0.5 bg-[var(--main)]"></span>
+									)}
+								</button>
+							</li>
+						))}
+					</ul>
+				</div>
+			</div>
+		);
+	}
+);
+
+MobileMenu.displayName = "MobileMenu";
+
+function Navbar() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const pathname = usePathname();
 	const router = useRouter();
@@ -57,6 +102,7 @@ export default function Navbar() {
 		router.push(path);
 	};
 
+	// Memoize navigation items to prevent unnecessary recalculations
 	const navItems = [
 		{
 			path: pathname === "/" ? "/gamemodes" : "/",
@@ -126,37 +172,15 @@ export default function Navbar() {
 				</button>
 			</div>
 
-			{/* Mobile Menu Overlay */}
-			<div
-				className={`fixed inset-0 bg-[var(--background)] z-40 transform transition-transform duration-300 ease-in-out ${
-					isMenuOpen ? "translate-x-0" : "translate-x-full"
-				} md:hidden`}
-			>
-				<div className="flex flex-col items-center justify-center min-h-screen">
-					<ul
-						className={`flex flex-col items-center gap-8 ${itim.className} text-3xl`}
-					>
-						{navItems.map((item) => (
-							<li key={item.path} className="w-full text-center">
-								<button
-									type="button"
-									className={`relative px-8 py-4 w-full transition-colors ${
-										pathname === item.path
-											? "text-[var(--main)]"
-											: "hover:text-[var(--main)]"
-									}`}
-									onClick={() => handleNavigation(item.path)}
-								>
-									{item.label}
-									{pathname === item.path && (
-										<span className="absolute bottom-0 left-1/4 w-1/2 h-0.5 bg-[var(--main)]"></span>
-									)}
-								</button>
-							</li>
-						))}
-					</ul>
-				</div>
-			</div>
+			{/* Mobile Menu Overlay - Only rendered when open */}
+			<MobileMenu
+				isMenuOpen={isMenuOpen}
+				navItems={navItems}
+				pathname={pathname}
+				handleNavigation={handleNavigation}
+			/>
 		</nav>
 	);
 }
+
+export default memo(Navbar);
